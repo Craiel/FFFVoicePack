@@ -2,6 +2,7 @@ local AddonName, Addon = ...;
 
 local VoiceData = VoicePackData();
 local VoiceCount = getn(VoiceData);
+local ActiveTextFilter = nil;
 
 local VoicesToDisplay = 18;
 
@@ -71,34 +72,52 @@ function Addon:OnEntryClick(entryId)
 end
 
 function Addon:Update()
-    --local name, guild, level, race, class, zone, group;
     local button;
 
-    local whoOffset = FauxScrollFrame_GetOffset(VoicePackListScrollFrame);
-    local whoIndex;
+    local offset = FauxScrollFrame_GetOffset(VoicePackListScrollFrame);
 
-    -- unsere Locals
     local voiceId, shortDesc;
-    for i = 1, VoicesToDisplay, 1 do
-        whoIndex = whoOffset + i;
-        button = getglobal("VoicePackListButton" .. i);
 
-        voiceId = self:GetIdFromIndex(whoIndex);
-        shortDesc = VoiceData[whoIndex];
-
-        getglobal("VoicePackListButton" .. i .. "VoiceId"):SetText(voiceId);
-        getglobal("VoicePackListButton" .. i .. "ShortDesc"):SetText(shortDesc);
-
-        -- Highlight the correct who
-        if (self.ActiveVoiceId == whoIndex) then
-            button:LockHighlight();
-        else
-            button:UnlockHighlight();
+    local FilteredVoiceText = {};
+    local FilteredVoices = {};
+    local FilteredVoiceIndex = 0;
+    for i = 1, VoiceCount, 1 do
+        local text = VoiceData[i];
+        local isFiltered = false;
+        if ActiveTextFilter ~= nil then
+            if (string.find(strlower(text), ActiveTextFilter) == nil) then
+                isFiltered = true;
+            end
         end
 
-        if (whoIndex > VoiceCount) then
-            button:Hide();
-        else
+        if not isFiltered then
+            FilteredVoices[FilteredVoiceIndex] = i;
+            FilteredVoiceText[FilteredVoiceIndex] = text;
+            FilteredVoiceIndex = FilteredVoiceIndex + 1;
+        end
+    end
+
+    local FilteredVoiceCount = FilteredVoiceIndex;
+    for i = 1, VoicesToDisplay, 1 do
+        local voiceIndex = offset + i - 1;
+
+        button = getglobal("VoicePackListButton" .. i);
+        button:Hide();
+
+        if voiceIndex < FilteredVoiceCount then
+            voiceId = self:GetIdFromIndex(FilteredVoices[voiceIndex]);
+            shortDesc = FilteredVoiceText[voiceIndex];
+
+            getglobal("VoicePackListButton" .. i .. "VoiceId"):SetText(voiceId);
+            getglobal("VoicePackListButton" .. i .. "ShortDesc"):SetText(shortDesc);
+
+            -- Highlight the correct who
+            if (self.ActiveVoiceId == FilteredVoices[voiceIndex]) then
+                button:LockHighlight();
+            else
+                button:UnlockHighlight();
+            end
+
             button:Show();
         end
     end
@@ -106,9 +125,20 @@ function Addon:Update()
     self:UpdateButtons();
 
     -- ScrollFrame update
-    FauxScrollFrame_Update(VoicePackListScrollFrame, VoiceCount, VoicesToDisplay, VOICE_PACK_LIST_ENTRY_HEIGHT );
+    FauxScrollFrame_Update(VoicePackListScrollFrame, FilteredVoiceCount, VoicesToDisplay, VOICE_PACK_LIST_ENTRY_HEIGHT );
 
     ShowUIPanel(VoicePack_Main);
+end
+
+function Addon:SetFilterText(text)
+    if text ~= nil and strtrim(text) == "" then text = nil end
+
+    if text ~= nil then
+        text = strlower(text);
+    end
+
+    ActiveTextFilter = text;
+    self:Update();
 end
 
 function VPSendVoice(channel)
@@ -137,6 +167,10 @@ end
 
 function VPToggleCombatDisable(checkbox)
     Addon:SetCombatEnable(checkbox:GetChecked())
+end
+
+function VPSetFilter(text)
+    Addon:SetFilterText(text);
 end
 
 function ListColumn_SetWidth(width, frame)

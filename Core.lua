@@ -4,7 +4,7 @@ local VoicePackDisabled    = false; -- is saved
 local VoiceDisableInCombat = false; -- is saved
 local VoiceData = VoicePackData();
 local VoiceCount = getn(VoiceData);
-local DataPath = "Interface\\AddOns\\FFFVoicePack\\data\\";
+local DataPath = "Interface\\AddOns\\FFFVoicePack\\sounds\\";
 local AudioFileSuffix = ".mp3";
 
 DEBUG_MODE = false;
@@ -176,9 +176,10 @@ end
 
 function Addon:PlaySound(voice)
     if (not self:IsDisabled()) then
-        success = PlaySoundFile(DataPath .. voice .. AudioFileSuffix);
+        local file = DataPath .. voice .. AudioFileSuffix;
+        success = PlaySoundFile(file);
         if (not success) then
-            self:Log("Could not play sound file.");
+            self:Log("Could not play sound file: " .. file);
         end
     else
         self:Log("Play of " .. voice .. " Failed, is Disabled")

@@ -612,6 +612,80 @@
                 </OnClick>
               </Scripts>
             </Button>
+            <EditBox name="VoicePackFrameEditBox" autoFocus="false" frameStrata="HIGH" historyLines="32">
+              <Size>
+                <AbsDimension x="288" y="32"/>
+              </Size>
+              <Anchors>
+                <Anchor point="BOTTOMLEFT" relativeTo="VoicePackSendGuildButton" relativePoint="TOPLEFT">
+                  <Offset>
+                    <AbsDimension x="10" y="-4"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Layers>
+                <Layer level="BACKGROUND">
+                  <Texture file="Interface\ChatFrame\UI-ChatInputBorder-Left">
+                    <Size>
+                      <AbsDimension x="144" y="32"/>
+                    </Size>
+                    <Anchors>
+                      <Anchor point="LEFT">
+                        <Offset>
+                          <AbsDimension x="-16" y="0"/>
+                        </Offset>
+                      </Anchor>
+                    </Anchors>
+                    <TexCoords left="0" right="0.29296875" top="0" bottom="1.0"/>
+                  </Texture>
+                  <Texture file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+                    <Size>
+                      <AbsDimension x="144" y="32"/>
+                    </Size>
+                    <Anchors>
+                      <Anchor point="RIGHT">
+                        <Offset>
+                          <AbsDimension x="-16" y="0"/>
+                        </Offset>
+                      </Anchor>
+                    </Anchors>
+                    <TexCoords left="0.70703125" right="1.0" top="0" bottom="1.0"/>
+                  </Texture>
+                </Layer>
+              </Layers>
+              <Scripts>
+                <OnShow>
+                  self:ClearFocus();
+                </OnShow>
+                <OnEnterPressed>
+                  VoicePackFrameEditBox:ClearFocus();
+                </OnEnterPressed>
+                <OnTextChanged>
+                  VPSetFilter(self:GetText());
+                </OnTextChanged>
+                <OnEscapePressed>
+                  self:ClearFocus();
+                </OnEscapePressed>
+              </Scripts>
+              <FontString inherits="ChatFontNormal"/>
+            </EditBox>
+            <Button name="VoicePackClearButton" inherits="UIPanelButtonTemplate" text="X">
+              <Size>
+                <AbsDimension x="42" y="22"/>
+              </Size>
+              <Anchors>
+                <Anchor point="LEFT" relativeTo="VoicePackFrameEditBox" relativePoint="RIGHT">
+                  <Offset>
+                    <AbsDimension x="-20" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Scripts>
+                <OnClick>
+                  VoicePackFrameEditBox:SetText("");
+                </OnClick>
+              </Scripts>
+            </Button>
             <ScrollFrame name="VoicePackListScrollFrame" inherits="FauxScrollFrameTemplate">
             <Size>
               <AbsDimension x="296" y="287"/>
