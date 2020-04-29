@@ -321,7 +321,6 @@ function VoicePackData()
     database[317]="Das ist blaues Licht.";
     database[318]="Und was macht es?";
     database[319]="Es leuchtet blau.";
-    
     database[320]="Achso ja, Schei\195\159e, stimmt.";
     database[321]="Ah, da ist es.";
     database[322]="Alter, schon mal meine 5000 Watt Basemachine geh\195\182rt?";
@@ -357,7 +356,6 @@ function VoicePackData()
     database[352]="Whf whf whf";
     database[353]="Wohoo, see ya!";
     database[354]="Wo isset?";
-
     database[355]="Okay, listen the fuck up!";
     database[356]="You are going to DPS very, very slowly.";
     database[357]="And by slowly I mean fucking slow!";
@@ -371,7 +369,6 @@ function VoicePackData()
     database[365]="FUCK!";
     database[366]="That's a fucking 50 DKP minus!";
     database[367]="What the fuck was that shit?!";
-
     database[368]="I hate my life. I hate my life. I hate my life.";
     database[369]="You guys are totally out of control.";
     database[370]="Look, I don't know about your previous captains but I intend to do as little dying as possible.";
@@ -386,7 +383,6 @@ function VoicePackData()
     database[379]="Up yours, bimbo!";
     database[380]="Ouch! Ouch! Thanks everybody!";
     database[381]="Wahahaaaaa! We're gonna die!";
-
     database[382]="Captain may I have a word with you?";
     database[383]="You risked your life to save me!";
     database[384]="Noooooooo!";
@@ -404,10 +400,8 @@ function VoicePackData()
     database[396]="Oopsie daysie.";
     database[397]="Hahaha, that's funny.";
     database[398]="Everyone get in bed with me. I have something to show you!";
-    database[399]="We have a mission to further the noble cause of intergalactic peace.";
-    
+    database[399]="We have a mission to further the noble cause of intergalactic peace.";    
     database[400]="Hmm, hmm... Was? \195\132h, jaja!";
-
     database[401]="Ja gern, aber warum liegt hier \195\188berhaupt Stroh?";
     database[402]="Und warum hast du 'ne Maske auf?";
     database[403]="Dann blas mir doch einen!";

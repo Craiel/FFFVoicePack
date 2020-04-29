@@ -1,366 +1,204 @@
+local AddonName, Addon = ...;
 
--- Globals--
+Addon.__Events__ = {}
+Addon.Events  = {}
+
+Addon.EventFrame = CreateFrame("frame")
 
 VoicePackLocked = false;
-TestPlayRunning = false;
+ActiveTab = 1
+ActiveVoiceId = -1
 VoicePackDisabled    = false; -- is saved
 VoiceDisableInCombat = false; -- is saved
 VoicePackFirstUpdate = 1;
 VoiceText = {};
 VoiceIDs  = {};
-local Original_ChatFrame_OnEvent = ChatFrame_OnEvent;
-
--- Constants --
 
 VOICE_PACK_LIST_ENTRY_HEIGHT = 16;
 VOICES_TO_DISPLAY = 18;
+DEBUG_MODE = false;
 
+function Addon.InitConfig()
+end
 
--- Print message in default chat frame --
+function Addon:Log(message)
+    if (not message) then
+        message = "<nil>"
+    end
 
-function TMPrint(msg)
-    local r = 0.50;
-    local g = 0.50;
-    local b = 1.00;
+    print("|cffff001eFFF VoicePack: " .. message)
+end
 
-    if (not frame) then 
-        frame = DEFAULT_CHAT_FRAME; 
-    end if (frame) then
-        frame:AddMessage(msg, r, g, b);
+function Addon:RegisterEvent(Event, Handler)
+    Addon:Log("RegisterEvent: " .. Event)
+    self.EventFrame:RegisterEvent(Event)
+    self.__Events__[Event] = Handler
+end
+
+function Addon:UnregisterEvent(Event)
+    self.EventFrame:UnregisterEvent(Event)
+    self.__Events__[Event] = nil
+end
+
+function Addon:RegisterEventTable(EventTable)
+    for i,v in pairs(EventTable) do
+        self:RegisterEvent(i, v)
     end
 end
 
-VOICEPACK_SUBFRAMES = {"VoicePackList", "VoicePackSearch"};
-
-function VoicePack_Main_ShowSubFrame(frameName)
-    for index, value in pairs(VOICEPACK_SUBFRAMES) do
-        if (value == frameName) then
-            getglobal(value):Show()
-        else
-            getglobal(value):Hide();    
-        end 
-    end 
-end
-
-
--- Initialize Addon --
-
-function VoicePack_OnLoad()
-    this:RegisterEvent("VARIABLES_LOADED");
-    
-    this:RegisterEvent("CHAT_MSG_ADDON");
-    this:RegisterEvent("CHAT_MSG_PARTY");
-    this:RegisterEvent("CHAT_MSG_GUILD");
-    this:RegisterEvent("CHAT_MSG_YELL");
-    this:RegisterEvent("CHAT_MSG_RAID");
-    
-    this:RegisterEvent("VOICEPACKLIST_SHOW");
-    this:RegisterEvent("VOICEPACKLIST_UPDATE");
-    this:RegisterEvent("VOICEPACKSEARCH_SHOW");
-    this:RegisterEvent("VOICEPACKSEARCH_UPDATE");
-    
-    this:RegisterEvent("PARTY_MEMBERS_CHANGED");
-    this:RegisterEvent("PLAYER_GUILD_UPDATE");
-    
-    this:RegisterForDrag("LeftButton");
-    
-    PanelTemplates_SetNumTabs(this, 2);
-    VoicePack_Main.selectedTab = 1;
-    PanelTemplates_UpdateTabs(this);
-    
-    tinsert(UISpecialFrames, "VoicePack_Main");    
-    
-    SlashCmdList["VoicePackPLAYSOUND"] = VoicePack_playSound;
-    SLASH_VoicePackPLAYSOUND1 = "/vpplay";
-    SLASH_VoicePackPLAYSOUND2 = "/vplay";
-
-    SlashCmdList["VoicePackVOICEPARTY"] = VoicePack_SendVoicePartyConsole;
-    SLASH_VoicePackVOICEPARTY1 = "/vp";
-    SLASH_VoicePackVOICEPARTY2 = "/voiceparty";
-
-    SlashCmdList["VoicePackVOICEGUILD"] = VoicePack_SendVoiceGuildConsole;
-    SLASH_VoicePackVOICEGUILD1 = "/vg";
-    SLASH_VoicePackVOICEGUILD2 = "/voiceguild";
-
-    SlashCmdList["VoicePackVOICERAID"] = VoicePack_SendVoiceRaidConsole;
-    SLASH_VoicePackVOICERAID1 = "/vr";
-    SLASH_VoicePackVOICERAID2 = "/voiceraid";
-
-    SlashCmdList["VoicePackVOICEYELL"] = VoicePack_SendVoiceYellConsole;
-    SLASH_VoicePackVOICEYELL1 = "/vy";
-    SLASH_VoicePackVOICEYELL2 = "/voiceyell";
-
-    SlashCmdList["VoicePackTOGGLE"] = VoicePack_Toggle;
-    SLASH_VoicePackTOGGLE1 = "/voicepack";  
-    
-    SlashCmdList["VoicePackCOMBATDISABLE"] = VoicePack_ToggleCombatDisable;
-    SLASH_VoicePackCOMBATDISABLE1 = "/voicecombat";
-    SLASH_VoicePackCOMBATDISABLE2 = "/vc";
-
-    SlashCmdList["VoicePackHELP"] = VoicePack_Help;
-    SLASH_VoicePackHELP1 = "/vphelp";   
-    SLASH_VoicePackHELP2 = "/vhelp";    
-    
-    TMPrint("FFFVoicePack loaded");
-    
-    VoicePackSearchButton:Enable();
-    
-    VoicePack_UpdateButtons();
-end
-
-function ChatFrame_OnEvent(event)
-    local handleEvent = (event == "CHAT_MSG_YELL")  or (event == "CHAT_MSG_GUILD") or
-                        (event == "CHAT_MSG_PARTY") or (event == "CHAT_MSG_RAID");
-                       
-    if (handleEvent and (string.sub(arg1, 1, 11) == "[VoicePack]") and VoicePack_CurrentlyDisabled()) then
-        return;
+function Addon:UnregisterEventTable(EventTable)
+    for i,v in pairs(EventTable) do
+        self:UnregisterEvent(i, v)
     end
-    
-    Original_ChatFrame_OnEvent(event);
 end
 
-function VoicePack_Help()
-    TMPrint("/vphelp, vhelp:\t Display help");
-    TMPrint("Use /vplay fff<ID> to play sound just for you (same as right-click in list)");
-    TMPrint("Use /vp fff<ID> or /voiceparty fff<ID> to play sound in PartyChat (same as Send Party button)");
-    TMPrint("Use /vg fff<ID> or /voiceguild fff<ID> to play sound in GuildChat (same as Send Guild button)");
-    TMPrint("Use /vr fff<ID> or /voiceraid fff<ID> to play sound in RaidChat (same as Send Raid button)");
-    TMPrint("Use /vy fff<ID> or /voiceyell fff<ID> to yell sound (same as Yell button)");
-    TMPrint("Use /vc or /voicecombat to disable or enable the voicepack during combat");
-    TMPrint("use /voicepack to toggle window on/off");
-    TMPrint("You can even define a shortcut in the WoW keybindings menu to toggle window on/off.");
+function HandleChatMessageSound(msg)
+    if (string.sub(msg, 1, 4) == "#fff") then
+        id = string.sub(msg, 2, 7);
+        Addon:PlaySound(id);
+    end
 end
 
-
--- Send functions --
-function VoicePack_Test()
-    -- TMPrint(VoicePack);
-    TMPrint(ListChannels());
+function Addon.__Events__:CHAT_MSG_PARTY(msg)
+    HandleChatMessageSound(msg);
 end
 
-function VoicePackDisableInCombat_OnClick(checkbutton)
-    VoicePackDisableInCombat = checkbutton:GetChecked();
+function Addon.__Events__:CHAT_MSG_PARTY_LEADER(msg)
+    HandleChatMessageSound(msg);
+end
 
-    VoicePack_UpdateButtons();
+function Addon.__Events__:CHAT_MSG_GUILD(msg)
+    HandleChatMessageSound(msg);
+end
+
+function Addon.__Events__:CHAT_MSG_YELL(msg)
+    HandleChatMessageSound(msg);
+end
+
+function Addon.__Events__:CHAT_MSG_RAID(msg)
+    HandleChatMessageSound(msg);
+end
+
+function Addon.__Events__:CHAT_MSG_RAID_LEADER(msg)
+    HandleChatMessageSound(msg);
+end
+
+function Addon.__Events__:CHAT_MSG_SAY(msg)
+    HandleChatMessageSound(msg);
+end
+
+function Addon.__Events__:GROUP_ROSTER_UPDATE()
+    Addon:UpdateButtons();
+end
+
+function Addon.__Events__:PLAYER_GUILD_UPDATE()
+    Addon:UpdateButtons();
+end
+
+Addon:RegisterEventTable(Addon.__Events__);
+Addon.EventFrame:SetScript("OnEvent", function(self, event, ...)
+    if DEBUG_MODE then
+        Addon:Log("EVT ".. event);
+    end
+
+    Addon.__Events__[event](self, ...);
+end)
+
+
+function Addon:Load()
+
+    tinsert(UISpecialFrames, "VoicePack_Main");
+
+    SLASH_VPPLAY1 = "/vplay";
+    SLASH_VPPLAY2 = "/vpplay";
+    SlashCmdList["VPPLAY"] = function(arg1) Addon:PlaySound(arg1) end;
+
+    SLASH_VPPARTY1 = "/vp";
+    SLASH_VPPARTY2 = "/voiceparty";
+    SlashCmdList["VPPARTY"] = function(arg1) Addon:SendVoice(arg1, "PARTY") end;
+
+    SLASH_VPGUILD1 = "/vg";
+    SLASH_VPGUILD2 = "/voiceguild";
+    SlashCmdList["VPGUILD"] = function(arg1) Addon:SendVoice(arg1, "GUILD") end;
+
+    SLASH_VPRAID1 = "/vr";
+    SLASH_VPRAID2 = "/voiceraid";
+    SlashCmdList["VPRAID"] = function(arg1) Addon:SendVoice(arg1, "RAID") end;
+
+    SLASH_VPCOMBAT1 = "/vc";
+    SLASH_VPCOMBAT2 = "/voicecombat";
+    SlashCmdList["VPCOMBAT"] = function(arg1) Addon:SetCombatEnable(not VoicePackDisableInCombat) end;
+
+    SLASH_VPRAID1 = "/vy";
+    SLASH_VPRAID2 = "/voicecombat";
+    SlashCmdList["VPRAID"] = function(arg1) Addon:SendVoice(arg1, "YELL") end;
+
+    SLASH_VPTOGGLE1 = "/voicepack";
+    SLASH_VPTOGGLE2 = "/vpp";
+    SlashCmdList["VPTOGGLE"] = function() Addon:Toggle() end;
+
+    SLASH_VPHELP1 = "/vphelp";
+    SLASH_VPHELP2 = "/vphelp";
+    SlashCmdList["VPHELP"] = function() Addon:Help() end;
+
+    Addon:Log("Loaded");
+
+    self:UpdateButtons();
+end
+
+function Addon:SetEnabled(enabled)
+    VoicePackDisabled = enabled;
+
+    self:UpdateButtons();
+    self:Update();
 
     local str = "enabled";
-    
+
+    if (VoicePackDisabled) then str = "disabled" end;
+
+    self:Log("VoicePack is now " .. str);
+end
+
+function Addon:SetCombatEnable(enabled)
+    VoicePackDisableInCombat = enabled;
+
+    self:UpdateButtons();
+
+    local str = "enabled";
+
     if (VoicePackDisableInCombat) then str = "disabled" end;
-    
-    TMPrint("VoicePack is now " .. str .. " during combat");
+
+    self:Log("VoicePack is now " .. str .. " during combat");
 end
 
--- Toggle combat disable --
-function VoicePack_ToggleCombatDisable()
-    VoiceDisableInCombat_OnClick(VoicePackDisableButton);
+function Addon:Help()
+    self:Log("/vphelp, vhelp:\t Display help");
+    self:Log("Use /vplay fff<ID> to play sound just for you (same as right-click in list)");
+    self:Log("Use /vp fff<ID> or /voiceparty fff<ID> to play sound in PartyChat (same as Send Party button)");
+    self:Log("Use /vg fff<ID> or /voiceguild fff<ID> to play sound in GuildChat (same as Send Guild button)");
+    self:Log("Use /vr fff<ID> or /voiceraid fff<ID> to play sound in RaidChat (same as Send Raid button)");
+    self:Log("Use /vy fff<ID> or /voiceyell fff<ID> to yell sound (same as Yell button)");
+    self:Log("Use /vc or /voicecombat to disable or enable the voicepack during combat");
+    self:Log("use /voicepack or /vpp to toggle window on/off");
 end
 
--- Send a voice pack to party --
-function VoicePack_SendVoiceParty(Voice)
-    local db = VoicePackData();
+function Addon:Toggle()
+    local frame = getglobal("VoicePack_Main");
 
-    if (Voice ~= nil) then
-        if (VoicePack_Main.selectedTab == 1) then
-            SendAddonMessage("FFFVoicePack", Voice, "PARTY");
-            SendChatMessage("[VoicePack] " .. VoicePackList.selectedVoiceText, "PARTY");
-        elseif (VoicePack_Main.selectedTab == 2) then
-	    id = VoicePack_voiceIdToId(Voice);
-            SendChatMessage("[VoicePack] " .. db[id], "PARTY");
-            SendAddonMessage("FFFVoicePack", Voice, "PARTY");
-        end
-    end
-end
-
--- Send a voice pack to Yell --
-function VoicePack_SendVoiceYell(Voice)
-    local db = VoicePackData();
-
-    if (Voice ~= nil) then
-        if (VoicePack_Main.selectedTab == 1) then
-            SendChatMessage(Voice .. ": " .. VoicePackList.selectedVoiceText, "YELL");
-        elseif (VoicePack_Main.selectedTab == 2) then
-	    id = VoicePack_voiceIdToId(Voice);
-            SendChatMessage(Voice .. ": " .. db[id], "YELL");
-        end
-    end
-end
-
-
--- Send a voice pack to guild --
-function VoicePack_SendVoiceGuild(Voice)
-    local db = VoicePackData();
-
-    if (Voice ~= nil) then
-        if (VoicePack_Main.selectedTab == 1) then
-          SendAddonMessage("FFFVoicePack", Voice, "GUILD");
-            SendChatMessage("[VoicePack] " .. VoicePackList.selectedVoiceText, "GUILD");
-        elseif (VoicePack_Main.selectedTab == 2) then
-	    id = VoicePack_voiceIdToId(Voice);
-            SendChatMessage("[VoicePack] " .. db[id], "GUILD");
-          SendAddonMessage("FFFVoicePack", Voice, "GUILD");
-        end
-    end
-end
-
--- Send a voice pack to raid --
-function VoicePack_SendVoiceRaid(Voice)
-    local db = VoicePackData();
-
-    if (Voice ~= nil) then
-        if (VoicePack_Main.selectedTab == 1) then
-          SendAddonMessage("FFFVoicePack", Voice, "RAID");
-          SendChatMessage("[VoicePack] " .. VoicePackList.selectedVoiceText, "RAID");
-        elseif (VoicePack_Main.selectedTab == 2) then
-	    id = VoicePack_voiceIdToId(Voice);
-            SendChatMessage("[VoicePack] " .. db[id], "RAID");
-          SendAddonMessage("FFFVoicePack", Voice, "RAID");
-        end
-    end
-end
-
--- Send a voice pack to party --
-function VoicePack_SendVoicePartyConsole(Voice)
-    local id = VoicePack_voiceIdToId(Voice);
-    local db = VoicePackData();
-
-    if (id ~= -1 and Voice ~= nil) then
-        if (id <= getn(db)) then
-            SendAddonMessage("FFFVoicePack", Voice, "PARTY");
-            SendChatMessage("[VoicePack] " .. VoicePackList.selectedVoiceText, "PARTY");
-        else
-            TMPrint("Invalid VoiceID: " .. id);
-        end
-    end
-end
-
--- Send a voice pack to Yell --
-function VoicePack_SendVoiceYellConsole(Voice)
-    local id = VoicePack_voiceIdToId(Voice);
-    local db = VoicePackData();
-    
-    if (id ~= -1 and Voice ~= nil) then
-        if( id <= getn(db)) then
-            SendChatMessage(Voice .. ": " .. db[id], "YELL");
-        else
-            TMPrint("Invalid VoiceID: " .. id);
-        end
-    end
-end
-
-
--- Send a voice pack to guild --
-function VoicePack_SendVoiceGuildConsole(Voice)
-    local id = VoicePack_voiceIdToId(Voice);
-    local db = VoicePackData();
-    
-    if (id ~= -1 and Voice ~= nil) then
-        if (id <= getn(db)) then
-            SendAddonMessage("FFFVoicePack", Voice, "GUILD");
-            SendChatMessage("[VoicePack] " .. VoicePackList.selectedVoiceText, "GUILD");
-        else
-            TMPrint("Invalid VoiceID: " .. id);
-        end
-    end
-end
-
--- Send a voice pack to raid --
-function VoicePack_SendVoiceRaidConsole(Voice)
-    local id = VoicePack_voiceIdToId(Voice);
-    local db = VoicePackData();
-    
-    if (id ~= -1 and Voice ~= nil) then
-        if (id <= getn(db)) then
-            SendAddonMessage("FFFVoicePack", Voice, "RAID");
-            SendChatMessage("[VoicePack] " .. VoicePackList.selectedVoiceText, "RAID");
-        else
-            TMPrint("Invalid VoiceID: " .. id);
-        end
-    end
-end
-
--- Wandelt den String VoiceId in id um zum dereferenzieren des Arrays ("fff034" -> <int>34)
-function VoicePack_voiceIdToId(VoiceId)
-    local isFFF = strfind(VoiceId, "fff%d%d%d", 0);
-    local id = 0;
-    
-    if (strlen(VoiceId) <=6 ) then
-        if (isFFF == 1) then      
-            if (strfind(VoiceId, "fff00", 0)) then
-                id = strsub(VoiceId, 6, 6);
-            
-            elseif(strfind(VoiceId, "fff0",0)) then
-                id = strsub(VoiceId, 5, 6);
-            
-            elseif(strfind(VoiceId, "fff", 0)) then
-                id = strsub(VoiceId, 4, 6);
-            
-            else
-                TMPrint("Invalid VoiceID.")
-            end     
-        else
-            TMPrint("Parameter for voice IDs should match fff<ID> with <ID> being an integer.");
-            id = -1;
-        end
+    if (frame:IsVisible()) then
+        frame:Hide();
     else
-        TMPrint("Invalid VoiceID: " .. VoiceId);
-        id = -1;
-    end
-    
-    id = tonumber(id);
-    return id;
-end
-
-function VoicePack_CurrentlyDisabled()
-    return VoicePackDisabled or (VoiceDisableInCombat and UnitAffectingCombat("player") and GetNumRaidMembers() > 0);
-end
-
-
--- sender == nil implies channel == nil! --
-function VoicePack_playSound(Voice, sender, channel)
-    if (not VoicePack_CurrentlyDisabled()) then
-        local desc = "";
-        local SoundHandle;
-        local db = VoicePackData();
-
-        TestPlayRunning = true;
-        SoundHandle = PlaySoundFile("Interface\\AddOns\\FFFVoicePack\\FFFVoices\\" .. getFileName(Voice .. "_01"));
-
-        if (SoundHandle ~= 1) then
-            TMPrint("Could not play sound file.");
-        end
-
-        -- wait(1);
-        TestPlayRunning = false;
+        frame:Show();
     end
 end
 
-
--- Not in use yet --
-function VoicePack_stopSound ()
-    StopSoundFile();
-end
-
--- Wait a num of seconds, not in use yet --
-function wait(i)
-    local time = GetTime();
-    local deltaTime = GetTime() + i;
-    
-    while (time < deltaTime) do
-        time = GetTime();
-    end
-end
-
-function VoicePack_UpdateButtons()
+function Addon:UpdateButtons()
     if (VoicePackDisabled) then
         VoicePackSendGuildButton:Disable();
         VoicePackSendPartyButton:Disable();
         VoicePackYellButton:Disable();
         VoicePackRaidButton:Disable();
-        VoicePackSearchSendGuildButton:Disable();
-        VoicePackSearchSendPartyButton:Disable();
-        VoicePackSearchYellButton:Disable();
-        VoicePackSearchRaidButton:Disable();
-        
+
         return;
     end
 
@@ -368,120 +206,99 @@ function VoicePack_UpdateButtons()
     VoicePackSendPartyButton:Enable();
     VoicePackYellButton:Enable();
     VoicePackRaidButton:Enable();
-    VoicePackSearchSendGuildButton:Enable();
-    VoicePackSearchSendPartyButton:Enable();
-    VoicePackSearchYellButton:Enable();
-    VoicePackSearchRaidButton:Enable();
-    
 
     if (not IsInGuild()) then
         VoicePackSendGuildButton:Disable();
-        VoicePackSearchSendGuildButton:Disable();
     end
 
-    if (GetNumRaidMembers() == 0) then
+    if (not IsInRaid()) then
         VoicePackRaidButton:Disable();
-        VoicePackSearchRaidButton:Disable();
     end
 
-    if (GetNumPartyMembers() == 0 and GetNumRaidMembers() == 0) then
+    if (GetNumGroupMembers() == 0) then
         VoicePackSendPartyButton:Disable();
-        VoicePackSearchSendPartyButton:Disable();
     end
 end
 
--- Event listener --
-function VoicePack_OnEvent(event)
-    local VoiceName;
-    
+function Addon:IDStringToId(idString)
+    local isFFF = strfind(idString, "fff%d%d%d", 0);
+    local id = 0;
 
-    if (event == "PARTY_MEMBERS_CHANGED" or event == "PLAYER_GUILD_UPDATE") then
-        VoicePack_UpdateButtons();
-        return;
-    end
-    
-    
-    if (arg1 == "VOICEPACKLIST_SHOW") then
-        VoicePackList_Update();
-        VoicePack_Update();
-    elseif (arg1 == "VOICEPACKLIST_UPDATE") then
-        VoicePackList_Update();
-    elseif (arg1 == "VOICEPACKSEARCH_SHOW") then
-        VoicePackSearch_Update();
-        VoicePack_Update();
-    elseif (arg1 == "VOICEPACKSEARCH_UPDATE") then
-        VoicePackSearch_Update();
-    end
-    
-    if (event == "CHAT_MSG_YELL") then
-        if (string.sub(arg1, 1, 3) == "fff") then
-            VoiceName = string.sub(arg1, 1, 6);
-            VoicePack_playSound(VoiceName, arg2, "YELL");
+    if (strlen(idString) <=6 ) then
+        if (isFFF == 1) then
+            if (strfind(idString, "fff00", 0)) then
+                id = strsub(idString, 6, 6);
+
+            elseif(strfind(idString, "fff0",0)) then
+                id = strsub(idString, 5, 6);
+
+            elseif(strfind(idString, "fff", 0)) then
+                id = strsub(idString, 4, 6);
+
+            else
+                TMPrint("Invalid idString.")
+            end
+        else
+            TMPrint("Parameter for id IDs should match fff<ID> with <ID> being an integer.");
+            id = -1;
         end
+    else
+        TMPrint("Invalid VoiceID: " .. VoiceId);
+        id = -1;
     end
-    
-    if (event == "CHAT_MSG_ADDON" and arg1 == "FFFVoicePack") then
-        VoiceName = string.sub(arg2, 1, 6);
-        VoicePack_playSound(VoiceName, arg4, arg3);
+
+    id = tonumber(id);
+    return id;
+end
+
+function Addon:OnEntryClick(entryId)
+    ActiveVoiceId = -1;
+
+    if (ActiveTab == 1) then
+
+        idString = getglobal("VoicePackListButton" .. entryId .. "VoiceId"):GetText();
+
+        if DEBUG_MODE then
+            self:Log("EC: " .. entryId .. " -- " .. idString);
+        end
+
+        id = self:IDStringToId(idString);
+        if (id == -1) then
+            return;
+        end
+
+        if(DEBUG_MODE == true) then
+            self:PlaySound(idString, nil, nil);
+        end
+
+        VoicePackList.selectedWho = getglobal("VoicePackListButton" .. entryId).whoIndex;
+        ActiveVoiceId = id;
+        self:Update();
     end
 end
 
-
--- Get filename from voiceId
-function getFileName(Voice)
-    return Voice .. ".mp3";
+function Addon:IsDisabled()
+    return VoicePackDisabled or (VoiceDisableInCombat and UnitAffectingCombat("player") and GetNumGroupMembers() > 0);
 end
 
+function Addon:PlaySound(voice)
+    if (not self:IsDisabled()) then
+        local desc = "";
+        local SoundHandle;
+        local db = VoicePackData();
 
--- Interface functions --
-function VoicePack_Toggle()
-    local frame = getglobal("VoicePack_Main");
-    
-    if (frame:IsVisible()) then
-        frame:Hide();
-    else    
-        frame:Show();
+        success = PlaySoundFile("Interface\\AddOns\\FFFVoicePack\\FFFVoices\\" .. voice .. "_01.mp3");
+        if (not success) then
+            self:Log("Could not play sound file.");
+        end
+    else
+        self:Log("Play of " .. voice .. " Failed, is Disabled")
     end
-end 
-
-
-function VoicePackListColumn_SetWidth(width, frame)
-    if (not frame) then
-        frame = this;
-    end
-    
-    frame:SetWidth(width);
-    getglobal(frame:GetName() .. "Middle"):SetWidth(width - 9);
 end
 
-function VoicePackSearchColumn_SetWidth(width, frame)
-    if (not frame) then
-        frame = this;
-    end
-    
-    frame:SetWidth(width);
-    getglobal(frame:GetName() .. "Middle"):SetWidth(width - 9);
-end
-
-
-function VoicePackVoiceList()
-    local voiceList = VoicePackData();
-    local fileHandle = nil;
-    local fileName = "Interface\AddOns\FFFVoicePack\FFFVoices\FFFVoiceListeTest.txt";
-    local length = getn(voiceList);
-    
-    for voiceId, shortDesc in ipairs(voiceList) do 
-        TMPrint(VoicePackGetIdFromIndex(voiceId) .. ":  " .. shortDesc);
-    end
-    
-    -- TMPrint(length);
-    -- return voiceList;
-end
-
-
-function VoicePackGetIdFromIndex(index)
+function Addon:GetIdFromIndex(index)
     -- TMPrint(index);
-    
+
     if (index < 10) then
         return "fff00" .. index;
     elseif(index < 100) then
@@ -491,41 +308,36 @@ function VoicePackGetIdFromIndex(index)
     end
 end
 
--- Updates the VoicePackListFrame
-function VoicePackList_Update()
-    
+function Addon:Update()
     --local name, guild, level, race, class, zone, group;
     local button;
-    
+
     local whoOffset = FauxScrollFrame_GetOffset(VoicePackListScrollFrame);
     local whoIndex;
-    
-    -- unsre Locals
+
+    -- unsere Locals
     local voiceId, shortDesc;
     local voiceList = VoicePackData();
     local numVoices = getn(voiceList);
-    
 
-    
     for i = 1, VOICES_TO_DISPLAY, 1 do
         whoIndex = whoOffset + i;
         button = getglobal("VoicePackListButton" .. i);
         button.whoIndex = whoIndex;
 
-        
-        voiceId = VoicePackGetIdFromIndex(whoIndex);
+        voiceId = self:GetIdFromIndex(whoIndex);
         shortDesc = voiceList[whoIndex];
-        
+
         getglobal("VoicePackListButton" .. i .. "VoiceId"):SetText(voiceId);
         getglobal("VoicePackListButton" .. i .. "ShortDesc"):SetText(shortDesc);
-        
+
         -- Highlight the correct who
         if (VoicePackList.selectedWho == whoIndex) then
             button:LockHighlight();
         else
             button:UnlockHighlight();
         end
-        
+
         if (whoIndex > numVoices) then
             button:Hide();
         else
@@ -533,182 +345,94 @@ function VoicePackList_Update()
         end
     end
 
-    VoicePack_UpdateButtons();
-    
-    
+    self:UpdateButtons();
+
     -- ScrollFrame update
     FauxScrollFrame_Update(VoicePackListScrollFrame, numVoices, VOICES_TO_DISPLAY, VOICE_PACK_LIST_ENTRY_HEIGHT );
 
     ShowUIPanel(VoicePack_Main);
 end
 
-
-function VoicePackDisable_OnClick(checkbutton)
-    VoicePackDisabled = checkbutton:GetChecked();
-    
-    VoicePack_UpdateButtons();
-    VoicePackList_Update();
-    
-    local str = "enabled";
-    
-    if (VoicePackDisabled) then str = "disabled" end;
-    
-    TMPrint("VoicePack is now " .. str);
-end
-
-
-function VoicePackDisable_OnEvent()
-    return VoicePackDisabled;                       
-end
-
-
-function VoicePackListEntryButton_OnClick(button)
-    if (VoicePack_Main.selectedTab == 1) then
-        if(TestPlayRunning == false and button == "RightButton") then            
-            VoicePack_playSound(getglobal("VoicePackListButton" .. this:GetID() .. "VoiceId"):GetText(), nil, nil);           
-        end
-        
-        VoicePackList.selectedWho = getglobal("VoicePackListButton" .. this:GetID()).whoIndex;
-        VoicePackList.selectedVoiceName = getglobal("VoicePackListButton" .. this:GetID() .. "VoiceId"):GetText();
-        VoicePackList.selectedVoiceText = getglobal("VoicePackListButton" .. this:GetID() .. "ShortDesc"):GetText();
-        VoicePackList_Update();
-        
-    elseif (VoicePack_Main.selectedTab == 2) then
-        if(TestPlayRunning == false and button == "RightButton") then            
-            VoicePack_playSound(getglobal("VoicePackSearchButton" .. this:GetID() .. "VoiceId"):GetText(), nil, nil);         
-        end
-        
-        VoicePackSearch.selectedWho = getglobal("VoicePackSearchButton" .. this:GetID()).whoIndex;
-        VoicePackSearch.selectedVoiceName = getglobal("VoicePackSearchButton" .. this:GetID() .. "VoiceId"):GetText();
-        VoicePackSearch.selectedVoiceText = getglobal("VoicePackSearchButton" .. this:GetID() .. "ShortDesc"):GetText();
-        VoicePackSearch_Update();
-    end
-end
-
--- Search after writing in the EditBox Search Frame
-function VoicePackFrameEditBox_Search()
-    local searchText = VoicePackFrameEditBox:GetText();
+function Addon:SendVoice(channel)
     local db = VoicePackData();
-    local length = getn(db);
-    local indexForResult = 1;
-    local result = {};
-    local voiceId, shortDesc, text;
-    
-    VoiceText = {};
-    VoiceIDs = {};
-    
-    if (string.len(searchText) > 0) then
-        for i = 1, length do 
-            text = strlower(db[i]);
-            searchText = strlower(searchText);
 
-            if (string.find(text, searchText) ~= nil) then
-                VoiceText[indexForResult] = db[i];
-                VoiceIDs[indexForResult] = tonumber(i);
-                indexForResult = indexForResult + 1;
-            end
+    if (ActiveVoiceId ~= -1 and ActiveVoiceId ~= nil) then
+        if DEBUG_MODE then
+            self:Log("Sending Voice: " .. ActiveVoiceId)
         end
-    end
-   
-    if (getn(VoiceText) ~= 0) then
-        VoicePackSearch.selectedWho = 0;
-        VoicePackSearch.selectedVoiceName = 0;
-    end
-    
-    -- VoicePackSearch_Update();
-end
 
--- Updates the Search Frame after Search and scroll --
-function VoicePackSearch_Update()
-    VoicePackSearchButton:Enable();
-    local length = getn(VoiceIDs);
-    local button;
-    local whoOffset = FauxScrollFrame_GetOffset(VoicePackSearchScrollFrame);
-    local whoIndex = 0;
-    local voiceId, shortDesc;
-    local voiceList = VoicePackData();
-    
-    for i = 1, VOICES_TO_DISPLAY, 1 do
-        whoIndex = whoOffset + i;
-        button = getglobal("VoicePackSearchButton" .. i);
-        button.whoIndex = whoIndex;
-        
-        if (whoIndex <= length) then
-            voiceId = VoicePackGetIdFromIndex(VoiceIDs[whoIndex]);
-            shortDesc = VoiceText[whoIndex];
+        if( ActiveVoiceId <= getn(db)) then
+            SendChatMessage("#" .. self:GetIdFromIndex(ActiveVoiceId) .. ": " .. db[ActiveVoiceId], channel);
         else
-            voiceId = "";
-            shortDesc = "";
-        end 
-        
-        getglobal("VoicePackSearchButton" .. i .. "VoiceId"):SetText(voiceId);
-        getglobal("VoicePackSearchButton" .. i .. "ShortDesc"):SetText(shortDesc);
-        
-        -- Highlight the correct who
-        if (VoicePackSearch.selectedWho == whoIndex) then
-            button:LockHighlight();
-        else
-            button:UnlockHighlight();
+            self:Log("Invalid VoiceID: " .. id);
         end
-        
-        if (whoIndex > length) then
-            button:Hide();
-        else
-            button:Show();
-        end
-    end
-    
-    VoicePack_UpdateButtons();
-    
-    -- ScrollFrame update
-    FauxScrollFrame_Update(VoicePackSearchScrollFrame, length, VOICES_TO_DISPLAY, VOICE_PACK_LIST_ENTRY_HEIGHT);
-    
-    ShowUIPanel(VoicePack_Main);
-end
-
-function VoicePack_Update()
-    -- TMPrint("Tab: "..VoicePack_Main.selectedTab);
-
-    if (VoicePack_Main.selectedTab == 1) then
-        VoicePackList_Update();
-        VoicePack_Main_ShowSubFrame("VoicePackList");
-        
-    elseif (VoicePack_Main.selectedTab == 2) then
-        VoicePackSearch_Update();
-        VoicePack_Main_ShowSubFrame("VoicePackSearch");
     end
 end
 
-function VoicePack_OnShow()
-    VoicePack_Update();
-    UpdateMicroButtons();
-    VoicePack_UpdateButtons();
-end
+function Addon:HandleEvent(event)
+    self:Log("EVT: " .. event);
 
-function VoicePack_close()
-    -- if ( VoicePack_Main:IsVisible() ) then
-        HideUIPanel(VoicePack_Main);
-    -- end
-end
+    if(self:IsDisabled()) then
+        return;
+    end
 
-function ToggleVoicePack_Main(tab)
-    if (not tab) then
-        if (VoicePack_Main:IsVisible()) then
-            HideUIPanel(VoicePack_Main);
-        else
-            ShowUIPanel(VoicePack_Main);
-        end
-    else
-        if (tab == PanelTemplates_GetSelectedTab(VoicePack_Main) and VoicePack_Main:IsVisible()) then
-            HideUIPanel(VoicePack_Main);
-            return;
-        end
-        
-        PanelTemplates_SetTab(VoicePack_Main, tab);
-        if (VoicePack_Main:IsVisible()) then
-            VoicePack_OnShow();
-        else
-            ShowUIPanel(VoicePack_Main);
+    self:Log("EVT: " .. event);
+
+    local VoiceName;
+
+    if (event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_GUILD_UPDATE") then
+        self:UpdateButtons();
+        return;
+    end
+
+    if (event == "CHAT_MSG_YELL") or (event == "CHAT_MSG_GUILD") or (event == "CHAT_MSG_PARTY") or (event == "CHAT_MSG_RAID") then
+        self:Log("CHAT_EVT: " .. event .. " -- " .. arg1)
+        if (string.sub(arg1, 1, 4) == "#fff") then
+            id = string.sub(arg1, 2, 7);
+            self:PlaySound(id);
         end
     end
+
+    if (event == "CHAT_MSG_ADDON" and arg1 == "FFFVoicePack") then
+        VoiceName = string.sub(arg2, 1, 6);
+        VoicePack_playSound(VoiceName, arg4, arg3);
+    end
 end
+
+function VPSendVoice(channel)
+    Addon:SendVoice(channel)
+end
+
+function VPEntryOnClick(button)
+    Addon:OnEntryClick(button:GetID());
+end
+
+function VPOnLoad()
+    Addon:Load();
+end
+
+function VPOnUpdate()
+    Addon:Update();
+end
+
+function VPOnDisableEvent()
+    return VoicePackDisabled;
+end
+
+function VPToggleDisable(checkbox)
+    Addon:SetEnabled(checkbox:GetChecked());
+end
+
+function VPToggleCombatDisable(checkbox)
+    Addon:SetCombatEnable(checkbox:GetChecked())
+end
+
+function ListColumn_SetWidth(width, frame)
+    if (not frame) then
+        frame = self;
+    end
+
+    frame:SetWidth(width);
+    getglobal(frame:GetName() .. "Middle"):SetWidth(width - 9);
+end
+
