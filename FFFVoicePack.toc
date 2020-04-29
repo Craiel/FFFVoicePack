@@ -2,7 +2,7 @@
 ## Title: FFF VoicePack
 ## Notes: The Fabulous Furry Freakbrothers VoicePack
 ## Author: Seb, Alex, Raph, Patrick
-## Version: v1.2.0
+## Version: v1.3.0
 ## DefaultState: enabled
 ## SavedVariables: VoicePackDisabled, VoiceDisableInCombat, VoicePack_SupressMessages
 

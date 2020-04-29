@@ -1,10 +1,11 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
-  <Script file="FFFVoicePack.lua"/>
-  <Script file="FFFVoiceListe.lua"/>
-  
-  
-  
+  <Script file="Init.lua"/>
+  <Script file="Data.lua"/>
+  <Script file="Core.lua"/>
+  <Script file="Events.lua"/>
+  <Script file="UI.lua"/>
+
 <!-- start TEmplates -->
   <Button name="VoicePackListEntryButtonTemplate" virtual="true">
     <Size>
@@ -203,7 +204,7 @@
             </Anchor>
           </Anchors>
         </Texture>
-        <FontString name="$parentTitleText" inherits="GameFontHighlight" text="The Freakbrothers Voicepack v1.2">
+        <FontString name="$parentTitleText" inherits="GameFontHighlight" text="The Freakbrothers Voicepack v1.3">
           <Size>
             <AbsDimension x="300" y="14"/>
           </Size>
@@ -265,7 +266,8 @@
             </Layers>
             <Scripts>
               <OnEnter>
-                GameTooltip_AddNewbieTip(nil, nil, nil, nil, "Completely disable the VoicePack.", 1);
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+                GameTooltip_SetTitle(GameTooltip, "Completely disable the VoicePack.");
               </OnEnter>
               <OnLeave>
                 GameTooltip:Hide();
@@ -314,7 +316,8 @@
             </Layers>
             <Scripts>
               <OnEnter>
-                GameTooltip_AddNewbieTip(nil, nil, nil, nil, "Automatically mute playback and chat messages when you're part of a raid group and in combat.", 1);
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+                GameTooltip_SetTitle(GameTooltip, "Automatically mute playback and chat messages when you're part of a raid group and in combat.");
               </OnEnter>
               <OnLeave>
                 GameTooltip:Hide();
@@ -524,9 +527,9 @@
                 </Anchor>
               </Anchors>
             </Button>
-            <Button name="VoicePackSendGuildButton" inherits="UIPanelButtonTemplate" text="Send Guild">
+            <Button name="VoicePackSendGuildButton" inherits="UIPanelButtonTemplate" text="Guild">
               <Size>
-                <AbsDimension x="110" y="22"/>
+                <AbsDimension x="65" y="22"/>
               </Size>
               <Anchors>
                 <Anchor point="TOPLEFT"  relativeTo="VoicePackListButton18" relativePoint="BOTTOMLEFT">
@@ -543,7 +546,7 @@
             </Button>
             <Button name="VoicePackSendPartyButton" inherits="UIPanelButtonTemplate" text="Party">
               <Size>
-                <AbsDimension x="70" y="22"/>
+                <AbsDimension x="65" y="22"/>
               </Size>
               <Anchors>
                 <Anchor point="LEFT"  relativeTo="VoicePackSendGuildButton" relativePoint="RIGHT">
@@ -560,7 +563,7 @@
             </Button>
             <Button name="VoicePackRaidButton" inherits="UIPanelButtonTemplate" text="Raid">
               <Size>
-                <AbsDimension x="70" y="22"/>
+                <AbsDimension x="65" y="22"/>
               </Size>
               <Anchors>
                 <Anchor point="LEFT" relativeTo="VoicePackSendPartyButton" relativePoint="RIGHT">
@@ -570,9 +573,6 @@
                 </Anchor>
               </Anchors>
               <Scripts>
-                <OnLoad>
-                  self:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-                </OnLoad>
                 <OnClick>
                   VPSendVoice("RAID");
                 </OnClick>
@@ -580,7 +580,7 @@
             </Button>
             <Button name="VoicePackYellButton" inherits="UIPanelButtonTemplate" text="Yell">
               <Size>
-                <AbsDimension x="70" y="22"/>
+                <AbsDimension x="65" y="22"/>
               </Size>
               <Anchors>
                 <Anchor point="LEFT" relativeTo="VoicePackRaidButton" relativePoint="RIGHT">
@@ -590,11 +590,25 @@
                 </Anchor>
               </Anchors>
               <Scripts>
-                <OnLoad>
-                  self:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-                </OnLoad>
                 <OnClick>
                   VPSendVoice("YELL");
+                </OnClick>
+              </Scripts>
+            </Button>
+            <Button name="VoicePackSayButton" inherits="UIPanelButtonTemplate" text="Say">
+              <Size>
+                <AbsDimension x="65" y="22"/>
+              </Size>
+              <Anchors>
+                <Anchor point="LEFT" relativeTo="VoicePackYellButton" relativePoint="RIGHT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Scripts>
+                <OnClick>
+                  VPSendVoice("SAY");
                 </OnClick>
               </Scripts>
             </Button>
