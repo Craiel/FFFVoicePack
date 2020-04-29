@@ -44,7 +44,7 @@
         self:RegisterForClicks("LeftButtonUp", "RightButtonUp");
       </OnLoad>
       <OnClick>
-        VPEntryOnClick(self, arg1);
+        VPEntryOnClick(self, button);
       </OnClick>
     </Scripts>
     <HighlightTexture file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD">

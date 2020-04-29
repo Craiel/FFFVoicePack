@@ -48,7 +48,7 @@ function Addon:UpdateButtons()
     end
 end
 
-function Addon:OnEntryClick(entryId)
+function Addon:OnEntryClick(entryId, button)
     self.ActiveVoiceId = -1;
 
     idString = getglobal("VoicePackListButton" .. entryId .. "VoiceId"):GetText();
@@ -62,7 +62,12 @@ function Addon:OnEntryClick(entryId)
         return;
     end
 
-    if(DEBUG_MODE == true) then
+    if button == "RightButton" then
+        self:PlaySound(idString, nil, nil);
+        return;
+    end
+
+    if (DEBUG_MODE == true) then
         self:PlaySound(idString, nil, nil);
     end
 
@@ -145,8 +150,8 @@ function VPSendVoice(channel)
     Addon:SendVoice(channel)
 end
 
-function VPEntryOnClick(button)
-    Addon:OnEntryClick(button:GetID());
+function VPEntryOnClick(self, button)
+    Addon:OnEntryClick(self:GetID(), button);
 end
 
 function VPOnLoad()
