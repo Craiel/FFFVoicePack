@@ -1,0 +1,1106 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+  <Script file="FFFVoicePack.lua"/>
+  <Script file="FFFVoiceListe.lua"/>
+  
+  
+  
+<!-- start TEmplates -->
+  <Button name="VoicePackListEntryButtonTemplate" virtual="true">
+    <Size>
+      <AbsDimension x="298" y="16"/>
+    </Size>
+    <Layers>
+      <Layer level="BORDER">
+        <FontString name="$parentVoiceId" inherits="GameFontNormalSmall" justifyH="CENTER">
+          <Size>
+            <AbsDimension x="88" y="14"/>
+          </Size>
+          <Anchors>
+            <Anchor point="TOPLEFT">
+              <Offset>
+                <AbsDimension x="10" y="-3"/>
+              </Offset>
+            </Anchor>
+          </Anchors>
+        </FontString>
+        <FontString name="$parentShortDesc" inherits="GameFontHighlightSmall" justifyH="LEFT">
+          <Size>
+            <AbsDimension x="190" y="14"/>
+          </Size>
+          <Anchors>
+            <Anchor point="LEFT" relativeTo="$parentVoiceId" relativePoint="RIGHT">
+              <Offset>
+                <AbsDimension x="0" y="0"/>
+              </Offset>
+            </Anchor>
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
+    <Scripts>
+      <OnLoad>
+        this:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+      </OnLoad>
+      <OnClick>
+      
+        VoicePackListEntryButton_OnClick(arg1);
+        
+      </OnClick>
+    </Scripts>
+    <HighlightTexture file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD">
+      <Size>
+        <AbsDimension x="298" y="16"/>
+      </Size>
+      <Anchors>
+        <Anchor point="TOP">
+          <Offset>
+            <AbsDimension x="5" y="-2"/>
+          </Offset>
+        </Anchor>
+      </Anchors>
+    </HighlightTexture>
+  </Button>
+
+  <Button name="VoicePackListColumnHeaderTemplate" virtual="true">
+    <Size>
+      <AbsDimension x="10" y="24"/>
+    </Size>
+    <Layers>
+      <Layer level="BACKGROUND">
+        <Texture name="$parentLeft" file="Interface\FriendsFrame\WhoFrame-ColumnTabs">
+          <Size>
+            <AbsDimension x="5" y="24"/>
+          </Size>
+          <Anchors>
+            <Anchor point="TOPLEFT"/>
+          </Anchors>
+          <TexCoords left="0" right="0.078125" top="0" bottom="0.75"/>
+        </Texture>
+        <Texture name="$parentMiddle" file="Interface\FriendsFrame\WhoFrame-ColumnTabs">
+          <Size>
+            <AbsDimension x="53" y="24"/>
+          </Size>
+          <Anchors>
+            <Anchor point="LEFT" relativeTo="$parentLeft" relativePoint="RIGHT"/>
+          </Anchors>
+          <TexCoords left="0.078125" right="0.90625" top="0" bottom="0.75"/>
+        </Texture>
+        <Texture name="$parentRight" file="Interface\FriendsFrame\WhoFrame-ColumnTabs">
+          <Size>
+            <AbsDimension x="4" y="24"/>
+          </Size>
+          <Anchors>
+            <Anchor point="LEFT" relativeTo="$parentMiddle" relativePoint="RIGHT"/>
+          </Anchors>
+          <TexCoords left="0.90625" right="0.96875" top="0" bottom="0.75"/>
+        </Texture>
+      </Layer>
+    </Layers>
+    <Scripts>
+      <OnClick>
+        this:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+      </OnClick>
+    </Scripts>
+    <NormalText inherits="GameFontHighlightSmall">
+      <Anchors>
+        <Anchor point="LEFT">
+          <Offset>
+            <AbsDimension x="8" y="0"/>
+          </Offset>
+        </Anchor>
+      </Anchors>
+    </NormalText>
+  </Button>
+  <Button name="VoicePackTabTemplate" inherits="CharacterFrameTabButtonTemplate" virtual="true">
+    <Scripts>
+      <OnClick>
+        PanelTemplates_Tab_OnClick(VoicePack_Main);
+        VoicePack_OnShow();
+        <!--GuildControlPopupFrame:Hide();-->
+      </OnClick>
+    </Scripts>
+  </Button>
+  
+  
+<!-- END Templates -->
+
+
+
+<!-- Start Main Frame -->
+
+<Frame name="VoicePack_Main"  toplevel="true"  movable="true" parent="UIParent" hidden="true">
+    <Size>
+      <AbsDimension x="384" y="512"/>
+    </Size>
+    <Anchors>
+      <Anchor point="TOPLEFT">
+        <Offset>
+          <AbsDimension x="0" y="-104"/>
+        </Offset>
+      </Anchor>
+    </Anchors>
+    <HitRectInsets>
+      <AbsInset left="0" right="30" top="0" bottom="45"/>
+    </HitRectInsets>
+    <Layers>
+      <Layer level="BACKGROUND">
+        <Texture file="Interface\FriendsFrame\FriendsFrameScrollIcon">
+          <Size>
+            <AbsDimension x="60" y="60"/>
+          </Size>
+          <Anchors>
+            <Anchor point="TOPLEFT">
+              <Offset>
+                <AbsDimension x="7" y="-6"/>
+              </Offset>
+            </Anchor>
+          </Anchors>
+        </Texture>
+      </Layer>
+      <Layer level="ARTWORK">
+        <Texture name="FriendsFrameTopLeft" file="Interface\ClassTrainerFrame\UI-ClassTrainer-TopLeft">
+          <Size>
+            <AbsDimension x="256" y="256"/>
+          </Size>
+          <Anchors>
+            <Anchor point="TOPLEFT">
+              <Offset>
+                <AbsDimension x="0" y="0"/>
+              </Offset>
+            </Anchor>
+          </Anchors>
+        </Texture>
+        <Texture name="FriendsFrameTopRight" file="Interface\ClassTrainerFrame\UI-ClassTrainer-TopRight">
+          <Size>
+            <AbsDimension x="128" y="256"/>
+          </Size>
+          <Anchors>
+            <Anchor point="TOPRIGHT">
+              <Offset>
+                <AbsDimension x="0" y="0"/>
+              </Offset>
+            </Anchor>
+          </Anchors>
+        </Texture>
+        <Texture name="FriendsFrameBottomLeft" file="Interface\PaperDollInfoFrame\UI-Character-General-BottomLeft">
+          <Size>
+            <AbsDimension x="256" y="256"/>
+          </Size>
+          <Anchors>
+            <Anchor point="BOTTOMLEFT">
+              <Offset>
+                <AbsDimension x="0" y="0"/>
+              </Offset>
+            </Anchor>
+          </Anchors>
+        </Texture>
+        <Texture name="FriendsFrameBottomRight" file="Interface\PaperDollInfoFrame\UI-Character-General-BottomRight">
+          <Size>
+            <AbsDimension x="128" y="256"/>
+          </Size>
+          <Anchors>
+            <Anchor point="BOTTOMRIGHT">
+              <Offset>
+                <AbsDimension x="0" y="0"/>
+              </Offset>
+            </Anchor>
+          </Anchors>
+        </Texture>
+        <FontString name="$parentTitleText" inherits="GameFontHighlight" text="The Freakbrothers Voicepack v1.2">
+          <Size>
+            <AbsDimension x="300" y="14"/>
+          </Size>
+          <Anchors>
+            <Anchor point="TOP" relativeTo="VoicePack_Main" relativePoint="TOP">
+              <Offset>
+                <AbsDimension x="0" y="-16"/>
+              </Offset>
+            </Anchor>
+          </Anchors>
+        </FontString>
+        <FontString name="$parentMadeByText" inherits="GameFontNormalSmall" text="by Greymalkin, Martyria and Hikikomon">
+          <Size>
+            <AbsDimension x="300" y="14"/>
+          </Size>
+          <Anchors>
+            <Anchor point="TOP" relativeTo="VoicePack_Main" relativePoint="TOP">
+              <Offset>
+                <AbsDimension x="0" y="-35"/>
+              </Offset>
+            </Anchor>
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
+    <Frames>
+      <Button name="VoicePackCloseButton" inherits="UIPanelCloseButton">
+        <Anchors>
+          <Anchor point="TOPRIGHT" relativeTo="VoicePack_Main" relativePoint="TOPRIGHT">
+            <Offset>
+              <AbsDimension x="-30" y="-9"/>
+            </Offset>
+          </Anchor>
+        </Anchors>
+      </Button>
+      <CheckButton name="VoicePackDisableButton" virtual="true">
+            <Size>
+              <AbsDimension x="20" y="20"/>
+            </Size>
+            <Anchors>
+              <Anchor point="TOPRIGHT">
+                <Offset>
+                  <AbsDimension x="-200" y="-50"/>
+                </Offset>
+              </Anchor>
+            </Anchors>
+            <Layers>
+              <Layer level="ARTWORK">
+                <FontString name="$parentText" inherits="GameFontHighlightSmall" text="disable">
+                  <Anchors>
+                    <Anchor point="RIGHT" relativePoint="LEFT">
+                      <Offset>
+                        <AbsDimension x="-10" y="1"/>
+                      </Offset>
+                    </Anchor>
+                  </Anchors>
+                </FontString>
+              </Layer>
+            </Layers>
+            <Scripts>
+              <OnEnter>
+                GameTooltip_AddNewbieTip(nil, nil, nil, nil, "Completely disable the VoicePack.", 1);
+              </OnEnter>
+              <OnLeave>
+                GameTooltip:Hide();
+              </OnLeave>
+              <OnLoad>
+                this:RegisterEvent("VARIABLES_LOADED");
+              </OnLoad>
+              <OnEvent>
+                if (event == "VARIABLES_LOADED") then
+                  this:SetChecked(VoicePackDisable_OnEvent());
+                end
+              </OnEvent>
+              <OnClick>
+                VoicePackDisable_OnClick(this);
+              </OnClick>
+            </Scripts>
+            <NormalTexture file="Interface\Buttons\UI-CheckBox-Up"/>
+            <PushedTexture file="Interface\Buttons\UI-CheckBox-Down"/>
+            <HighlightTexture file="Interface\Buttons\UI-CheckBox-Highlight" alphaMode="ADD"/>
+            <CheckedTexture file="Interface\Buttons\UI-CheckBox-Check"/>
+            <DisabledCheckedTexture file="Interface\Buttons\UI-CheckBox-Check-Disabled"/>
+          </CheckButton>
+          <CheckButton name="VoicePackDisableInCombatButton" virtual="true">
+            <Size>
+              <AbsDimension x="20" y="20"/>
+            </Size>
+            <Anchors>
+              <Anchor point="TOPRIGHT">
+                <Offset>
+                  <AbsDimension x="-45" y="-50"/>
+                </Offset>
+              </Anchor>
+            </Anchors>
+            <Layers>
+              <Layer level="ARTWORK">
+                <FontString name="$parentText" inherits="GameFontHighlightSmall" text="mute in raid combat">
+                  <Anchors>
+                    <Anchor point="RIGHT" relativePoint="LEFT">
+                      <Offset>
+                        <AbsDimension x="-10" y="1"/>
+                      </Offset>
+                    </Anchor>
+                  </Anchors>
+                </FontString>
+              </Layer>
+            </Layers>
+            <Scripts>
+              <OnEnter>
+                GameTooltip_AddNewbieTip(nil, nil, nil, nil, "Automatically mute playback and chat messages when you're part of a raid group and in combat.", 1);
+              </OnEnter>
+              <OnLeave>
+                GameTooltip:Hide();
+              </OnLeave>
+              <OnLoad>
+                this:RegisterEvent("VARIABLES_LOADED");
+              </OnLoad>
+              <OnClick>
+                VoicePackDisableInCombat_OnClick(this);
+              </OnClick>
+            </Scripts>
+            <NormalTexture file="Interface\Buttons\UI-CheckBox-Up"/>
+            <PushedTexture file="Interface\Buttons\UI-CheckBox-Down"/>
+            <HighlightTexture file="Interface\Buttons\UI-CheckBox-Highlight" alphaMode="ADD"/>
+            <CheckedTexture file="Interface\Buttons\UI-CheckBox-Check"/>
+            <DisabledCheckedTexture file="Interface\Buttons\UI-CheckBox-Check-Disabled"/>
+          </CheckButton>
+      <Frame name="VoicePackList" setAllPoints="true" hidden="false">
+        <Frames>
+          <Button name="VoicePackListColumnHeader1" inherits="VoicePackListColumnHeaderTemplate" text="VoiceID" justifyH="CENTER">
+              <Anchors>
+                <Anchor point="TOPLEFT">
+                  <Offset>
+                    <AbsDimension x="20" y="-70"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Scripts>
+                <OnLoad>
+                  VoicePackListColumn_SetWidth(83);
+                </OnLoad>
+              </Scripts>
+            </Button>
+            <Button name="VoicePackListColumnHeader2" inherits="VoicePackListColumnHeaderTemplate" text="Short description">
+              <Anchors>
+                <Anchor point="LEFT" relativeTo="VoicePackListColumnHeader1" relativePoint="RIGHT">
+                  <Offset>
+                    <AbsDimension x="-2" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Scripts>
+                <OnLoad>
+                  VoicePackListColumn_SetWidth(240);
+                </OnLoad>
+              </Scripts>
+            </Button>
+            <Button name="VoicePackListButton1" inherits="VoicePackListEntryButtonTemplate" id="1">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackList">
+                  <Offset>
+                    <AbsDimension x="15" y="-95"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton2" inherits="VoicePackListEntryButtonTemplate" id="2">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton1" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton3" inherits="VoicePackListEntryButtonTemplate" id="3">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton2" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton4" inherits="VoicePackListEntryButtonTemplate" id="4">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton3" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton5" inherits="VoicePackListEntryButtonTemplate" id="5">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton4" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton6" inherits="VoicePackListEntryButtonTemplate" id="6">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton5" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton7" inherits="VoicePackListEntryButtonTemplate" id="7">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton6" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton8" inherits="VoicePackListEntryButtonTemplate" id="8">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton7" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton9" inherits="VoicePackListEntryButtonTemplate" id="9">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton8" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton10" inherits="VoicePackListEntryButtonTemplate" id="10">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton9" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton11" inherits="VoicePackListEntryButtonTemplate" id="11">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton10" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton12" inherits="VoicePackListEntryButtonTemplate" id="12">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton11" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton13" inherits="VoicePackListEntryButtonTemplate" id="13">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton12" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton14" inherits="VoicePackListEntryButtonTemplate" id="14">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton13" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton15" inherits="VoicePackListEntryButtonTemplate" id="15">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton14" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton16" inherits="VoicePackListEntryButtonTemplate" id="16">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton15" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton17" inherits="VoicePackListEntryButtonTemplate" id="17">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton16" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackListButton18" inherits="VoicePackListEntryButtonTemplate" id="18">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackListButton17" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>       
+            <Button name="VoicePackSendGuildButton" inherits="UIPanelButtonTemplate" text="Send Guild">
+              <Size>
+                <AbsDimension x="110" y="22"/>
+              </Size>
+              <Anchors>
+                <Anchor point="TOPLEFT"  relativeTo="VoicePackListButton18" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="4" y="-24"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Scripts>
+                <OnClick>
+                  VoicePack_SendVoiceGuild(VoicePackList.selectedVoiceName);
+                </OnClick>
+              </Scripts>
+            </Button>
+            <Button name="VoicePackSendPartyButton" inherits="UIPanelButtonTemplate" text="Party">
+              <Size>
+                <AbsDimension x="70" y="22"/>
+              </Size>
+              <Anchors>
+                <Anchor point="LEFT"  relativeTo="VoicePackSendGuildButton" relativePoint="RIGHT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Scripts>
+                <OnClick>
+                  VoicePack_SendVoiceParty(VoicePackList.selectedVoiceName);
+                </OnClick>
+              </Scripts>
+            </Button>
+            <Button name="VoicePackRaidButton" inherits="UIPanelButtonTemplate" text="Raid">
+              <Size>
+                <AbsDimension x="70" y="22"/>
+              </Size>
+              <Anchors>
+                <Anchor point="LEFT" relativeTo="VoicePackSendPartyButton" relativePoint="RIGHT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Scripts>
+                <OnLoad>
+                  this:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+                </OnLoad>
+                <OnClick>
+                  VoicePack_SendVoiceRaid(VoicePackList.selectedVoiceName);
+                </OnClick>
+              </Scripts>
+            </Button>
+            <Button name="VoicePackYellButton" inherits="UIPanelButtonTemplate" text="Yell">
+              <Size>
+                <AbsDimension x="70" y="22"/>
+              </Size>
+              <Anchors>
+                <Anchor point="LEFT" relativeTo="VoicePackRaidButton" relativePoint="RIGHT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Scripts>
+                <OnLoad>
+                  this:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+                </OnLoad>
+                <OnClick>
+                  VoicePack_SendVoiceYell(VoicePackList.selectedVoiceName);
+                </OnClick>
+              </Scripts>
+            </Button>
+            <ScrollFrame name="VoicePackListScrollFrame" inherits="FauxScrollFrameTemplate">
+            <Size>
+              <AbsDimension x="296" y="287"/>
+            </Size>
+            <Anchors>
+              <Anchor point="TOPRIGHT" relativeTo="VoicePack_Main" relativePoint="TOPRIGHT">
+                <Offset>
+                  <AbsDimension x="-67" y="-96"/>
+                </Offset>
+              </Anchor>
+            </Anchors>
+            <Scripts>
+              <OnVerticalScroll>
+                FauxScrollFrame_OnVerticalScroll(VOICE_PACK_LIST_ENTRY_HEIGHT, VoicePackList_Update); 
+              </OnVerticalScroll>
+            </Scripts>
+            <Layers>
+              <Layer level="BACKGROUND">
+                <Texture name="WhoListScrollBarTop" file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+                  <Size>
+                    <AbsDimension x="31" y="256"/>
+                  </Size>
+                  <Anchors>
+                    <Anchor point="TOPRIGHT" relativeTo="VoicePackListColumnHeader2" relativePoint="BOTTOMRIGHT">
+                      <Offset>
+                        <AbsDimension x="5" y="3"/>
+                      </Offset>
+                    </Anchor>
+                  </Anchors>
+                  <TexCoords left="0" right="0.484375" top="0" bottom="1.0"/>
+                </Texture>
+                <Texture file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+                  <Size>
+                    <AbsDimension x="31" y="106"/>
+                  </Size>
+                  <Anchors>
+                    <Anchor point="BOTTOM" relativeTo="$parentScrollBarScrollDownButton">
+                      <Offset>
+                        <AbsDimension x="0" y="-2"/>
+                      </Offset>
+                    </Anchor>
+                  </Anchors>
+                  <TexCoords left="0.515625" right="1.0" top="0" bottom="0.4140625"/>
+                </Texture>
+              </Layer>
+            </Layers>
+          </ScrollFrame>
+        </Frames>
+        <Scripts>
+          <OnShow>
+            
+          </OnShow>
+        </Scripts>
+      </Frame>
+      <Frame name="VoicePackSearch" setAllPoints="true" hidden="true">
+        <Frames>
+          <Button name="VoicePackSearchColumnHeader1" inherits="VoicePackListColumnHeaderTemplate" text="VoiceID" justifyH="CENTER">
+              <Anchors>
+                <Anchor point="TOPLEFT">
+                  <Offset>
+                    <AbsDimension x="20" y="-70"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Scripts>
+                <OnLoad>
+                  VoicePackSearchColumn_SetWidth(83);
+                </OnLoad>
+              </Scripts>
+            </Button>
+            <Button name="VoicePackSearchColumnHeader2" inherits="VoicePackListColumnHeaderTemplate" text="Short description">
+              <Anchors>
+                <Anchor point="LEFT" relativeTo="VoicePackSearchColumnHeader1" relativePoint="RIGHT">
+                  <Offset>
+                    <AbsDimension x="-2" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Scripts>
+                <OnLoad>
+                  VoicePackSearchColumn_SetWidth(240);
+                </OnLoad>
+              </Scripts>
+            </Button>
+            <Button name="VoicePackSearchButton1" inherits="VoicePackListEntryButtonTemplate" id="1">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearch">
+                  <Offset>
+                    <AbsDimension x="15" y="-95"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton2" inherits="VoicePackListEntryButtonTemplate" id="2">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton1" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton3" inherits="VoicePackListEntryButtonTemplate" id="3">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton2" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton4" inherits="VoicePackListEntryButtonTemplate" id="4">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton3" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton5" inherits="VoicePackListEntryButtonTemplate" id="5">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton4" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton6" inherits="VoicePackListEntryButtonTemplate" id="6">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton5" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton7" inherits="VoicePackListEntryButtonTemplate" id="7">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton6" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton8" inherits="VoicePackListEntryButtonTemplate" id="8">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton7" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton9" inherits="VoicePackListEntryButtonTemplate" id="9">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton8" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton10" inherits="VoicePackListEntryButtonTemplate" id="10">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton9" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton11" inherits="VoicePackListEntryButtonTemplate" id="11">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton10" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton12" inherits="VoicePackListEntryButtonTemplate" id="12">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton11" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton13" inherits="VoicePackListEntryButtonTemplate" id="13">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton12" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton14" inherits="VoicePackListEntryButtonTemplate" id="14">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton13" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton15" inherits="VoicePackListEntryButtonTemplate" id="15">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton14" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton16" inherits="VoicePackListEntryButtonTemplate" id="16">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton15" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton17" inherits="VoicePackListEntryButtonTemplate" id="17">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton16" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>
+            <Button name="VoicePackSearchButton18" inherits="VoicePackListEntryButtonTemplate" id="18">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativeTo="VoicePackSearchButton17" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+            </Button>       
+            <Button name="VoicePackSearchSendGuildButton" inherits="UIPanelButtonTemplate" text="Send Guild">
+              <Size>
+                <AbsDimension x="110" y="22"/>
+              </Size>
+              <Anchors>
+                <Anchor point="TOPLEFT"  relativeTo="VoicePackSearchButton18" relativePoint="BOTTOMLEFT">
+                  <Offset>
+                    <AbsDimension x="4" y="-24"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Scripts>
+                <OnClick>
+                  VoicePack_SendVoiceGuild(VoicePackSearch.selectedVoiceName);
+                </OnClick>
+              </Scripts>
+            </Button>
+            <Button name="VoicePackSearchSendPartyButton" inherits="UIPanelButtonTemplate" text="Party">
+              <Size>
+                <AbsDimension x="70" y="22"/>
+              </Size>
+              <Anchors>
+                <Anchor point="LEFT"  relativeTo="VoicePackSearchSendGuildButton" relativePoint="RIGHT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Scripts>
+                <OnClick>
+                  VoicePack_SendVoiceParty(VoicePackSearch.selectedVoiceName);
+                </OnClick>
+              </Scripts>
+            </Button>
+            <Button name="VoicePackSearchRaidButton" inherits="UIPanelButtonTemplate" text="Raid">
+              <Size>
+                <AbsDimension x="70" y="22"/>
+              </Size>
+              <Anchors>
+                <Anchor point="LEFT" relativeTo="VoicePackSearchSendPartyButton" relativePoint="RIGHT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Scripts>
+                <OnLoad>
+                  this:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+                </OnLoad>
+                <OnClick>
+                  VoicePack_SendVoiceRaid(VoicePackSearch.selectedVoiceName);
+                </OnClick>
+              </Scripts>
+            </Button>
+            <Button name="VoicePackSearchYellButton" inherits="UIPanelButtonTemplate" text="Yell">
+              <Size>
+                <AbsDimension x="70" y="22"/>
+              </Size>
+              <Anchors>
+                <Anchor point="LEFT" relativeTo="VoicePackSearchRaidButton" relativePoint="RIGHT">
+                  <Offset>
+                    <AbsDimension x="0" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Scripts>
+                <OnLoad>
+                  this:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+                </OnLoad>
+                <OnClick>
+                  VoicePack_SendVoiceYell(VoicePackSearch.selectedVoiceName);
+                </OnClick>
+              </Scripts>
+            </Button>
+            <EditBox name="VoicePackFrameEditBox" autoFocus="false" frameStrata="HIGH" historyLines="32">
+              <Size>
+                <AbsDimension x="260" y="32"/>
+              </Size>
+              <Anchors>
+                <Anchor point="BOTTOMLEFT" relativeTo="VoicePackSearchSendGuildButton" relativePoint="TOPLEFT">
+                  <Offset>
+                    <AbsDimension x="10" y="-4"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Layers>
+                <Layer level="BACKGROUND">
+                  <Texture file="Interface\ChatFrame\UI-ChatInputBorder-Left">
+                    <Size>
+                      <AbsDimension x="130" y="32"/>
+                    </Size>
+                    <Anchors>
+                      <Anchor point="LEFT">
+                        <Offset>
+                          <AbsDimension x="-16" y="0"/>
+                        </Offset>
+                      </Anchor>
+                    </Anchors>
+                    <TexCoords left="0" right="0.29296875" top="0" bottom="1.0"/>
+                  </Texture>
+                  <Texture file="Interface\ChatFrame\UI-ChatInputBorder-Right">
+                    <Size>
+                      <AbsDimension x="130" y="32"/>
+                    </Size>
+                    <Anchors>
+                      <Anchor point="RIGHT">
+                        <Offset>
+                          <AbsDimension x="-16" y="0"/>
+                        </Offset>
+                      </Anchor>
+                    </Anchors>
+                    <TexCoords left="0.70703125" right="1.0" top="0" bottom="1.0"/>
+                  </Texture>
+                </Layer>
+              </Layers>
+              <Scripts>
+                <OnShow>
+                  this:ClearFocus();
+                </OnShow>
+                <OnEnterPressed>
+                  VoicePackFrameEditBox:ClearFocus();
+                </OnEnterPressed>
+                <OnTextChanged>
+                  VoicePackFrameEditBox_Search();
+                  VoicePackSearch_Update();
+                </OnTextChanged>
+                <OnEscapePressed>
+                  this:ClearFocus();
+                </OnEscapePressed>
+              </Scripts>
+              <FontString inherits="ChatFontNormal" bytes="256">
+              </FontString>
+            </EditBox>
+            <Button name="VoicePackSearchButton" inherits="UIPanelButtonTemplate" text="SEARCH">
+              <Size>
+                <AbsDimension x="70" y="22"/>
+              </Size>
+              <Anchors>
+                <Anchor point="LEFT" relativeTo="VoicePackFrameEditBox" relativePoint="RIGHT">
+                  <Offset>
+                    <AbsDimension x="-20" y="0"/>
+                  </Offset>
+                </Anchor>
+              </Anchors>
+              <Scripts>
+                <OnLoad>
+                  this:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+                </OnLoad>
+                <OnClick>
+                  <!--  VoicePackFrameEditBox_OnEnterPressed();-->
+                  VoicePackFrameEditBox_Search();
+                  VoicePackSearch_Update();               
+                </OnClick>
+              </Scripts>
+            </Button>
+            <ScrollFrame name="VoicePackSearchScrollFrame" inherits="FauxScrollFrameTemplate">
+            <Size>
+              <AbsDimension x="296" y="287"/>
+            </Size>
+            <Anchors>
+              <Anchor point="TOPRIGHT" relativeTo="VoicePack_Main" relativePoint="TOPRIGHT">
+                <Offset>
+                  <AbsDimension x="-67" y="-96"/>
+                </Offset>
+              </Anchor>
+            </Anchors>
+            <Scripts>
+              <OnVerticalScroll>
+                FauxScrollFrame_OnVerticalScroll(VOICE_PACK_LIST_ENTRY_HEIGHT, VoicePackSearch_Update); 
+              </OnVerticalScroll>
+            </Scripts>
+            <Layers>
+              <Layer level="BACKGROUND">
+                <Texture name="WhoListScrollBarTop" file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+                  <Size>
+                    <AbsDimension x="31" y="256"/>
+                  </Size>
+                  <Anchors>
+                    <Anchor point="TOPRIGHT" relativeTo="VoicePackSearchColumnHeader2" relativePoint="BOTTOMRIGHT">
+                      <Offset>
+                        <AbsDimension x="5" y="3"/>
+                      </Offset>
+                    </Anchor>
+                  </Anchors>
+                  <TexCoords left="0" right="0.484375" top="0" bottom="1.0"/>
+                </Texture>
+                <Texture file="Interface\PaperDollInfoFrame\UI-Character-ScrollBar">
+                  <Size>
+                    <AbsDimension x="31" y="106"/>
+                  </Size>
+                  <Anchors>
+                    <Anchor point="BOTTOM" relativeTo="$parentScrollBarScrollDownButton">
+                      <Offset>
+                        <AbsDimension x="0" y="-2"/>
+                      </Offset>
+                    </Anchor>
+                  </Anchors>
+                  <TexCoords left="0.515625" right="1.0" top="0" bottom="0.4140625"/>
+                </Texture>
+              </Layer>
+            </Layers>
+          </ScrollFrame>
+        </Frames>
+        <Scripts>
+          <OnShow>
+            
+          </OnShow>
+        </Scripts>
+      </Frame>
+      <Button name="VoicePack_MainTab1" inherits="VoicePackTabTemplate" id="1" text="Liste">
+        <Anchors>
+          <Anchor point="BOTTOMLEFT">
+            <Offset>
+              <AbsDimension x="11" y="45"/>
+            </Offset>
+          </Anchor>
+        </Anchors>
+      </Button>
+      <Button name="VoicePack_MainTab2" inherits="VoicePackTabTemplate" id="2" text="SEARCH">
+        <Anchors>
+          <Anchor point="LEFT" relativeTo="VoicePack_MainTab1" relativePoint="RIGHT">
+            <Offset>
+              <AbsDimension x="-14" y="0"/>
+            </Offset>
+          </Anchor>
+        </Anchors>
+      </Button>
+    </Frames>
+    <Scripts>
+      <OnLoad>
+              VoicePack_OnLoad();         
+      </OnLoad>
+      <OnHide>        
+      </OnHide>
+      <OnShow>
+        VoicePackList_Update();
+      </OnShow>
+      <OnEvent>
+        VoicePack_OnEvent(event,arg1,arg2);       
+      </OnEvent>
+      <OnDragStart>
+        this:StartMoving();
+      </OnDragStart>
+      <OnDragStop>
+        this:StopMovingOrSizing();
+      </OnDragStop>
+      <OnMouseUp>
+        this:StopMovingOrSizing();
+      </OnMouseUp>
+    </Scripts>
+  </Frame>
+
+
+<!-- End Main Frame -->
+  
+</Ui>

@@ -1,0 +1,8 @@
+## Interface: 20000
+## Title: FFF VoicePack
+## Author: Seb, Alex, Raph
+## Version: 1.2.0 The Fabulous Furry Freakbrothers VoicePack
+## Dependencies:
+## OptionalDeps: 
+## SavedVariables: VoicePackDisabled, VoiceDisableInCombat, VoicePack_SupressMessages
+FFFVoicePack.xml
