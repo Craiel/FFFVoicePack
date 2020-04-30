@@ -204,7 +204,7 @@
             </Anchor>
           </Anchors>
         </Texture>
-        <FontString name="$parentTitleText" inherits="GameFontHighlight" text="The Freakbrothers Voicepack v1.3">
+        <FontString name="$parentTitleText" inherits="GameFontHighlight" text="The Freakbrothers Voicepack v1.3.1">
           <Size>
             <AbsDimension x="300" y="14"/>
           </Size>
