@@ -145,7 +145,7 @@ function VoicePackData()
     database[141]="Du Sitzriese!";
     database[142]="Ich hatte auch ma so ne Alte, Haut wie'n Winterreifen, 2 Airbags untern Augen... ";
     database[143]="Hey Zwerge, hey Zwerge, hey Zwerge, ho!";
-    database[144]="Nicht den Neger... den J\195\164ger!!";
+    database[144]="";
     database[145]="Das ist die Ausl\195\182ser-Ausl\195\182sschnur. Die l\195\182st den Ausl\195\182ser aus.";
     database[146]="Halt! Keinen Schritt weiter! Ich bin n\195\164mlich einer der ber\195\188chtigten Zwerge!";
     database[147]="A Zwerg!? Ich hab immer gedacht die san viel kleiner...";
@@ -346,7 +346,7 @@ function VoicePackData()
     database[342]="Komm hier her!";
     database[343]="Komma her!";
     database[344]="Mjam mjam mjam";
-    database[345]="Nein nicht Sie. Der T\195\188rke!";
+    database[345]="";
     database[346]="Paar aufs Maul?";
     database[347]="Uhwhjamuwhaghnrmf";
     database[348]="Vergisset Gandalf.";
@@ -497,7 +497,7 @@ function VoicePackData()
     database[493]="Komm Raus!";
     database[494]="Pizza im Horchlappen";
     database[495]="Mir sitzt heut der schalk im Nacken";
-    database[496]="Neger mit blau-auge";
+    database[496]="";
     database[497]="Auch der K\195\182nig setzt ein wenig";
     database[498]="Ich geh mir noch einen klopfen";
     database[499]="Herz-pfl\195\182te";
@@ -557,7 +557,6 @@ function VoicePackData()
     database[553]="Ei ei ei wo isser denn";
     database[554]="Scheisse Scheisse Scheisse";
     database[555]="Wir brauchen mehr Scheisse";
-    database[556]="hart wie Kruppstahl";
 
     return database;
 end
