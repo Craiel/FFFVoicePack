@@ -101,17 +101,8 @@
         self:RegisterForClicks("LeftButtonUp", "RightButtonUp");
       </OnClick>
     </Scripts>
-    <NormalText inherits="GameFontHighlightSmall">
-      <Anchors>
-        <Anchor point="LEFT">
-          <Offset>
-            <AbsDimension x="8" y="0"/>
-          </Offset>
-        </Anchor>
-      </Anchors>
-    </NormalText>
   </Button>
-  <Button name="VoicePackTabTemplate" inherits="CharacterFrameTabButtonTemplate" virtual="true">
+  <Button name="VoicePackTabTemplate" inherits="PanelTabButtonTemplate" virtual="true">
     <Scripts>
       <OnClick>
         <!--GuildControlPopupFrame:Hide();-->
