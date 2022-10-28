@@ -1,9 +1,0 @@
-## Interface: 90207
-## Title: FFF VoicePack
-## Notes: The Fabulous Furry Freakbrothers VoicePack
-## Author: Seb, Alex, Raph, Patrick
-## DefaultState: enabled
-## SavedVariables: VoicePackDisabled, VoiceDisableInCombat, VoicePack_SupressMessages
-## Version: 10.0.3
-
-FFFVoicePack.xml

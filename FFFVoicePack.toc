@@ -1,0 +1,17 @@
+## Interface: 100000
+## Title: FFF VoicePack
+## Notes: The Fabulous Furry Freakbrothers VoicePack
+## Author: Raika
+## DefaultState: enabled
+## SavedVariables: VoicePackDisabled, VoiceDisableInCombat
+## Version: 2.0
+
+embeds.xml
+
+# Locale files
+Locales\Locale-enUS.lua
+Locales\Locale-deDE.lua
+
+Core.lua
+Data.lua
+UI.lua
