@@ -19,7 +19,6 @@ function VoicePackData()
     database[15]="We had lots of fun, fun, fun...";
     database[16]="I didn't do it!";
     database[17]="Now excuse me while I kiss the sky.";
-    database[18]="Uhh, the germans are mad at me...";
     database[19]="It doesn't matter what your name is, you idiot!";
     database[20]="Excellent!";
     database[21]="Relax, I'll get it!";
@@ -145,7 +144,6 @@ function VoicePackData()
     database[141]="Du Sitzriese!";
     database[142]="Ich hatte auch ma so ne Alte, Haut wie'n Winterreifen, 2 Airbags untern Augen... ";
     database[143]="Hey Zwerge, hey Zwerge, hey Zwerge, ho!";
-    database[144]="Nicht den Neger... den J\195\164ger!!";
     database[145]="Das ist die Ausl\195\182ser-Ausl\195\182sschnur. Die l\195\182st den Ausl\195\182ser aus.";
     database[146]="Halt! Keinen Schritt weiter! Ich bin n\195\164mlich einer der ber\195\188chtigten Zwerge!";
     database[147]="A Zwerg!? Ich hab immer gedacht die san viel kleiner...";
@@ -169,7 +167,6 @@ function VoicePackData()
     database[165]="Aber substanziell gesehen kann ich nur sagen... Schei\195\159e, oder wie oder wat!?";
     database[166]="Aber bei meinem letzten Sonntagsausflug is mir klar geworden... im Wald, da sind die R\195\164uber!";
     database[167]="Kleines K\195\164nnchen Kaffee, 4 Euro 80";
-    database[168]="Langer Schwanz, kurze Beine, gro\195\159e Klappe, Lederjacke... du bist Italiener!";
     database[169]="Der geht ab wie Schmidts Katze.";
     database[170]="13% Alkohol... wo sind die restlichen 97?";
     database[171]="I am very, very sneaky sir";
@@ -281,7 +278,6 @@ function VoicePackData()
     database[277]="Hallo Dori!";
     database[278]="Herzlichen Gl\195\188ckwunsch!";
     database[279]="Yo, yo, Witzalarm.";
-    database[280]="Menschen, oder.. Die meinen sie d\195\188rfen alles. War bestimmt Amerikaner!";
     database[281]="Was ist dein Problem?";
     database[282]="Ich? Ich, \195\164h, hab kein Problem.";
     database[283]="Oh, der Klassiker: Verdr\195\164ngung!";
@@ -497,7 +493,6 @@ function VoicePackData()
     database[493]="Komm Raus!";
     database[494]="Pizza im Horchlappen";
     database[495]="Mir sitzt heut der schalk im Nacken";
-    database[496]="Neger mit blau-auge";
     database[497]="Auch der K\195\182nig setzt ein wenig";
     database[498]="Ich geh mir noch einen klopfen";
     database[499]="Herz-pfl\195\182te";
