@@ -1,221 +1,225 @@
-local AddonName, Addon = ...;
+--[[
+  FFFVoicePack
+]]
 
-local VoicePackDisabled    = false; -- is saved
-local VoiceDisableInCombat = false; -- is saved
-local VoiceData = VoicePackData();
-local VoiceCount = getn(VoiceData);
-local DataPath = "Interface\\AddOns\\FFFVoicePack\\sounds\\";
-local AudioFileSuffix = ".mp3";
+---------------------------------------------------------
+-- Addon declaration
+FFFVoicePack = LibStub("AceAddon-3.0"):NewAddon("FFFVoicePack", "AceConsole-3.0", "AceEvent-3.0")
+local FFFVoicePack = FFFVoicePack
+local L = LibStub("AceLocale-3.0"):GetLocale("FFFVoicePack", false)
+local FFFLDB = LibStub("LibDataBroker-1.1"):NewDataObject("FFFVoicePack", {
+    type = "data source",
+    text = "FFFVoicePack",
+    icon = "Interface\\AddOns\\FFFVoicePack\\Images\\icon",
+    OnClick = function() FFFVoicePack:ToggleWindow() end,
+})
 
-DEBUG_MODE = false;
+local k_DataPath = "Interface\\AddOns\\FFFVoicePack\\sounds\\";
+local k_AudioFileSuffix = ".mp3";
+local k_LastSoundPlayTime = 0;
+local k_ForcedSoundDelay = 2;
+local k_LastChatSendTime = 0;
+local k_ForcedChatDelay = 2;
 
-Addon.ActiveVoiceId = -1
+local options = {
+    name = "FFFVoicePack",
+    handler = FFFVoicePack,
+    type = 'group',
+    args = {
+        enable = {
+          name = "Enable",
+          desc = "Enables / disables the addon",
+          type = "toggle",
+          set = function(info,val) FFFVoicePack.enabled = val end,
+          get = function(info) return FFFVoicePack.enabled end
+        },
+        show = {
+            name = "Show",
+            desc = "Show the Window",
+            type = "execute",
+            func = function() FFFVoicePack:ShowFrame() end
+        },
+        close = {
+            name = "Close",
+            desc = "Close the Window",
+            type = "execute",
+            func = function() FFFVoicePack:CloseFrame() end
+        },
+        play = {
+            name = "Play",
+            desc = "Play the sound file",
+            type = "input",
+            set = function(info, val) FFFVoicePack:PlaySound(tonumber(val)) end
+        },
+        guild = {
+            name = "Guild",
+            desc = "Send the sound clip to guild channel",
+            type = "input",
+            set = function(info, val) FFFVoicePack:SendToGuild(tonumber(val)) end
+        },
+        party = {
+            name = "Party",
+            desc = "Send the sound clip to party channel",
+            type = "input",
+            set = function(info, val) FFFVoicePack:SendToParty(tonumber(val)) end
+        },
+        raid = {
+            name = "Raid",
+            desc = "Send the sound clip to raid channel",
+            type = "input",
+            set = function(info, val) FFFVoicePack:SendToRaid(tonumber(val)) end
+        }
+    },
+}
 
-function Addon.InitConfig()
-end
+---------------------------------------------------------
+-- Std Methods
+function FFFVoicePack:OnInitialize()
+    FFFVoicePack:Print(L["Initializing..."])
+    FFFVoicePack:RegisterChatCommand("vp", "SlashVPPFunc")
+    LibStub("AceConfig-3.0"):RegisterOptionsTable("FFFVoicePack", options, {"vp"})
 
-function Addon:Log(message)
-    if (not message) then
-        message = "<nil>"
-    end
-
-    print("|cffff001eFFF VoicePack: " .. message)
-end
-
-function Addon:Load()
-
-    tinsert(UISpecialFrames, "VoicePack_Main");
-
-    SLASH_VPPLAY1 = "/vplay";
-    SLASH_VPPLAY2 = "/vpplay";
-    SlashCmdList["VPPLAY"] = function(arg1)
-        local index = tonumber(arg1);
-        if not Addon:IsValidIndex(index) then return end;
-
-        local id = Addon:GetIdFromIndex(index);
-        Addon:PlaySound(id);
-    end;
-
-    SLASH_VPPARTY1 = "/vp";
-    SLASH_VPPARTY2 = "/voiceparty";
-    SlashCmdList["VPPARTY"] = function(arg1)
-        local index = tonumber(arg1);
-        if not Addon:IsValidIndex(index) then return end;
-
-        Addon.ActiveVoiceId = index;
-        Addon:SendVoice("PARTY");
-    end;
-
-    SLASH_VPGUILD1 = "/vg";
-    SLASH_VPGUILD2 = "/voiceguild";
-    SlashCmdList["VPGUILD"] = function(arg1)
-        local index = tonumber(arg1);
-        if not Addon:IsValidIndex(index) then return end;
-
-        Addon.ActiveVoiceId = index;
-        Addon:SendVoice("GUILD");
-    end;
-
-    SLASH_VPRAID1 = "/vr";
-    SLASH_VPRAID2 = "/voiceraid";
-    SlashCmdList["VPRAID"] = function(arg1)
-        local index = tonumber(arg1);
-        if not Addon:IsValidIndex(index) then return end;
-
-        Addon.ActiveVoiceId = index;
-        Addon:SendVoice("RAID");
-    end;
-
-    SLASH_VPCOMBAT1 = "/vc";
-    SLASH_VPCOMBAT2 = "/voicecombat";
-    SlashCmdList["VPCOMBAT"] = function() Addon:SetCombatEnable(not VoicePackDisableInCombat) end;
-
-    SLASH_VPYELL1 = "/vy";
-    SLASH_VPYELL2 = "/voiceyell";
-    SlashCmdList["VPYELL"] = function(arg1)
-        local index = tonumber(arg1);
-        if not Addon:IsValidIndex(index) then return end;
-
-        Addon.ActiveVoiceId = index;
-        Addon:SendVoice("YELL");
-    end;
-
-    SLASH_VPSAY1 = "/vs";
-    SLASH_VPSAY2 = "/voicesay";
-    SlashCmdList["VPSAY"] = function(arg1)
-        local index = tonumber(arg1);
-        if not Addon:IsValidIndex(index) then return end;
-
-        Addon.ActiveVoiceId = index;
-        Addon:SendVoice("SAY");
-    end;
-
-    SLASH_VPTOGGLE1 = "/voicepack";
-    SLASH_VPTOGGLE2 = "/vpp";
-    SlashCmdList["VPTOGGLE"] = function() Addon:Toggle() end;
-
-    SLASH_VPHELP1 = "/vphelp";
-    SLASH_VPHELP2 = "/vphelp";
-    SlashCmdList["VPHELP"] = function() Addon:Help() end;
-
-    Addon:Log("Loaded");
-
-    self:UpdateButtons();
-end
-
-function Addon:SetEnabled(enabled)
-    VoicePackDisabled = enabled;
-
-    self:UpdateButtons();
-    self:Update();
-
-    local str = "enabled";
-
-    if (VoicePackDisabled) then str = "disabled" end;
-
-    self:Log("VoicePack is now " .. str);
-end
-
-function Addon:SetCombatEnable(enabled)
-    VoicePackDisableInCombat = enabled;
-
-    self:UpdateButtons();
-
-    local str = "enabled";
-
-    if (VoicePackDisableInCombat) then str = "disabled" end;
-
-    self:Log("VoicePack is now " .. str .. " during combat");
-end
-
-function Addon:Help()
-    self:Log("/vphelp, vhelp:\t Display help");
-    self:Log("Use /vplay <ID> to play sound just for you (same as right-click in list)");
-    self:Log("Use /vp <ID> or /voiceparty <ID> to play sound in PartyChat (same as Send Party button)");
-    self:Log("Use /vg <ID> or /voiceguild <ID> to play sound in GuildChat (same as Send Guild button)");
-    self:Log("Use /vr <ID> or /voiceraid <ID> to play sound in RaidChat (same as Send Raid button)");
-    self:Log("Use /vy <ID> or /voiceyell <ID> to yell sound (same as Yell button)");
-    self:Log("Use /vc or /voicecombat to disable or enable the voicepack during combat");
-    self:Log("use /voicepack or /vpp to toggle window on/off");
-end
-
-function Addon:IDStringToId(idString)
-    local isFFF = strfind(idString, "fff%d%d%d", 0);
-    local id = 0;
-
-    if (strlen(idString) <=6 ) then
-        if (isFFF == 1) then
-            if (strfind(idString, "fff00", 0)) then
-                id = strsub(idString, 6, 6);
-
-            elseif(strfind(idString, "fff0",0)) then
-                id = strsub(idString, 5, 6);
-
-            elseif(strfind(idString, "fff", 0)) then
-                id = strsub(idString, 4, 6);
-
-            else
-                TMPrint("Invalid idString.")
-            end
-        else
-            TMPrint("Parameter for id IDs should match fff<ID> with <ID> being an integer.");
-            id = -1;
-        end
-    else
-        TMPrint("Invalid VoiceID: " .. VoiceId);
-        id = -1;
-    end
-
-    id = tonumber(id);
-    return id;
-end
-
-function Addon:IsDisabled()
-    return VoicePackDisabled or (VoiceDisableInCombat and UnitAffectingCombat("player") and GetNumGroupMembers() > 0);
-end
-
-function Addon:PlaySound(voice)
-    if (not self:IsDisabled()) then
-        local file = DataPath .. voice .. AudioFileSuffix;
-        success = PlaySoundFile(file);
-        if (not success) then
-            self:Log("Could not play sound file: " .. file);
-        end
-    else
-        self:Log("Play of " .. voice .. " Failed, is Disabled")
-    end
-end
-
-function Addon:GetIdFromIndex(index)
-    -- TMPrint(index);
-
-    if (index < 10) then
-        return "fff00" .. index;
-    elseif(index < 100) then
-        return "fff0" .. index;
-    else
-        return "fff" .. index;
-    end
-end
-
-function Addon:IsValidIndex(index)
-    return index ~= nil and index >= 0 and index <= VoiceCount;
-end
-
-function Addon:SendVoice(channel)
-    local id = self.ActiveVoiceId;
-
-    if self:IsValidIndex(id) then
-        if DEBUG_MODE then
-            self:Log("Sending Voice: " .. id)
+    -- Load data and build grouping
+    FFFVoicePack.Data = FFFVoicePack:LoadData()
+    FFFVoicePack.DataCount = 0
+    FFFVoicePack.DataGroups = {}
+    for id, text in pairs(FFFVoicePack.Data) do
+        FFFVoicePack.DataCount = FFFVoicePack.DataCount + 1
+        local entryGroup = string.sub(string.upper(text), 1, 1)
+        local entryGroupVal = string.byte(entryGroup)
+        if entryGroupVal < 65 or entryGroupVal > 90 then
+            entryGroup = '#'
         end
 
-        if( id <= VoiceCount) then
-            SendChatMessage("#" .. self:GetIdFromIndex(id) .. ": " .. VoiceData[id], channel);
-        else
-            self:Log("Invalid VoiceID: " .. id);
+        if FFFVoicePack.DataGroups[entryGroup] == nil then
+            FFFVoicePack.DataGroups[entryGroup] = {}
         end
-    else
-        self.ActiveVoiceId = -1;
+
+        FFFVoicePack.DataGroups[entryGroup][id] = text
     end
+
+    FFFVoicePack:Print(FFFVoicePack.DataCount.. L[" Lines Loaded"])
+
+    FFFVoicePack.Icon = FFFVoicePack:SetupDBIcon()
+    FFFVoicePack:RegisterEvents()
+
+    FFFVoicePack:Print(L["Done!"])
+end
+
+function FFFVoicePack:OnEnable()
+    -- Called when the addon is enabled
+end
+
+function FFFVoicePack:OnDisable()
+    -- Called when the addon is disabled
+end
+
+---------------------------------------------------------
+-- Setup Methods
+function FFFVoicePack:SetupDBIcon()
+    local icon = LibStub("LibDBIcon-1.0")
+    icon:Register("FFFLDB", FFFLDB, savedVarTable)
+    icon:Show("FFFLDB")
+    return icon
+end
+
+function FFFVoicePack:RegisterEvents()
+    local AceEvent = LibStub("AceEvent-3.0")
+    AceEvent:RegisterEvent("CHAT_MSG_SAY", function(evt, msg) FFFVoicePack:HandleChatMsg(evt, msg) end);
+    AceEvent:RegisterEvent("CHAT_MSG_PARTY", function(evt, msg) FFFVoicePack:HandleChatMsg(evt, msg) end);
+    AceEvent:RegisterEvent("CHAT_MSG_PARTY_LEADER", function(evt, msg) FFFVoicePack:HandleChatMsg(evt, msg) end);
+    AceEvent:RegisterEvent("CHAT_MSG_GUILD", function(evt, msg) FFFVoicePack:HandleChatMsg(evt, msg) end);
+    AceEvent:RegisterEvent("CHAT_MSG_YELL", function(evt, msg) FFFVoicePack:HandleChatMsg(evt, msg) end);
+    AceEvent:RegisterEvent("CHAT_MSG_RAID", function(evt, msg) FFFVoicePack:HandleChatMsg(evt, msg) end);
+    AceEvent:RegisterEvent("CHAT_MSG_RAID_LEADER", function(evt, msg) FFFVoicePack:HandleChatMsg(evt, msg) end);
+end
+---------------------------------------------------------
+-- Slash Commands
+function FFFVoicePack:SlashVPPFunc(input)
+    FFFVoicePack:ToggleWindow(true)
+end
+
+---------------------------------------------------------
+-- Sound handling
+function FFFVoicePack:PlaySound(id)
+    if id == nil or FFFVoicePack:CanPlaySound() == false then
+        return
+    end
+
+    local file = k_DataPath .. FFFVoicePack:GetVoiceString(id) .. k_AudioFileSuffix;
+    success = PlaySoundFile(file);
+    k_LastSoundPlayTime = GetTime()
+end
+
+function FFFVoicePack:CanPlaySound()
+    if FFFVoicePack.enabled == false then
+        return false
+    end
+
+    local currentTime = GetTime()
+    local timePassed = currentTime - k_LastSoundPlayTime
+    return timePassed >= k_ForcedSoundDelay
+end
+
+---------------------------------------------------------
+-- Chat handling
+function FFFVoicePack:HandleChatMsg(evt, msg)
+    if (string.sub(msg, 1, 4) == "#fff") then
+        local id = string.sub(msg, 5, 7);
+        while string.sub(id, 1, 1) == '0' do
+            id = string.sub(id, 2, string.len(id))
+        end
+
+        FFFVoicePack:PlaySound(tonumber(id));
+    end
+end
+
+function FFFVoicePack:SendToGuild(id)
+    FFFVoicePack:SendToChannel(id, "GUILD")
+end
+
+function FFFVoicePack:SendToParty(id)
+    FFFVoicePack:SendToChannel(id, "PARTY")
+end
+
+function FFFVoicePack:SendToRaid(id)
+    FFFVoicePack:SendToChannel(id, "RAID")
+end
+
+function FFFVoicePack:SendToChannel(id, channel)
+    if id == nil or FFFVoicePack:CanSendTochat() == false then
+        return
+    end
+
+    local voiceText = FFFVoicePack.Data[id]
+    if voiceText == nil then
+        return
+    end
+
+    SendChatMessage("#" .. FFFVoicePack:GetVoiceString(id) .. ": " .. voiceText, channel);
+    k_LastChatSendTime = GetTime()
+end
+
+function FFFVoicePack:CanSendTochat()
+    if FFFVoicePack.enabled == false then
+        return false
+    end
+
+    local currentTime = GetTime()
+    local timePassed = currentTime - k_LastChatSendTime
+    return timePassed >= k_ForcedChatDelay
+end
+
+---------------------------------------------------------
+-- Utilities
+function FFFVoicePack:GetVoiceString(id)
+    if id < 10 then
+        return 'fff00'..id
+    end
+
+    if id < 100 then
+        return 'fff0'..id
+    end
+
+    return 'fff'..id
 end

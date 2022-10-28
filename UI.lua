@@ -1,188 +1,198 @@
-local AddonName, Addon = ...;
+local AceGUI = LibStub("AceGUI-3.0");
+local L = LibStub("AceLocale-3.0"):GetLocale("FFFVoicePack", false)
 
-local VoiceData = VoicePackData();
-local VoiceCount = getn(VoiceData);
-local ActiveTextFilter = nil;
+local k_VersionString = "2.0"
+local m_FrameActive = false
+local m_Frame = nil
+local m_SelectedEntry = nil
+local k_ChatbuttonWidth = 100
+local m_FilterText = ""
+local m_ActiveContainer = nil
+local m_ActiveGroup = nil
+local m_ResultLimit = 100
+local k_MinFilterLength = 2
 
-local VoicesToDisplay = 18;
+function FFFVoicePack:ShowFrame()
+    if m_FrameActive == true then
+        return
+    end
 
-VOICE_PACK_LIST_ENTRY_HEIGHT = 16;
+    m_Frame = AceGUI:Create("Frame")
+    m_Frame:SetTitle(L["FFFVoicePack"].." "..k_VersionString)
+    m_Frame:SetStatusText(L["- No Line Selected -"])
+    m_Frame:SetCallback("OnClose", function(widget) FFFVoicePack:CloseFrame() end)
+    m_Frame:SetLayout("Flow")
 
-function Addon:Toggle()
-    local frame = getglobal("VoicePack_Main");
+    local buttonGroup = AceGUI:Create("SimpleGroup")
+    buttonGroup:SetFullWidth(true)
+    buttonGroup:SetHeight(50)
+    buttonGroup:SetLayout("Flow")
 
-    if (frame:IsVisible()) then
-        frame:Hide();
+    local playButton = AceGUI:Create("Button")
+    playButton:SetText(L["Play"])
+    playButton:SetWidth(k_ChatbuttonWidth)
+    playButton:SetCallback("OnClick", function() FFFVoicePack:PlaySound(m_SelectedEntry) end)
+    buttonGroup:AddChild(playButton)
+
+    local guildButton = AceGUI:Create("Button")
+    guildButton:SetText(L["Guild"])
+    guildButton:SetWidth(k_ChatbuttonWidth)
+    guildButton:SetCallback("OnClick", function() FFFVoicePack:SendToGuild(m_SelectedEntry) end)
+    buttonGroup:AddChild(guildButton)
+
+    local partyButton = AceGUI:Create("Button")
+    partyButton:SetText(L["Party"])
+    partyButton:SetWidth(k_ChatbuttonWidth)
+    partyButton:SetCallback("OnClick", function() FFFVoicePack:SendToParty(m_SelectedEntry) end)
+    buttonGroup:AddChild(partyButton)
+
+    local raidButton = AceGUI:Create("Button")
+    raidButton:SetText(L["Raid"])
+    raidButton:SetWidth(k_ChatbuttonWidth)
+    raidButton:SetCallback("OnClick", function() FFFVoicePack:SendToRaid(m_SelectedEntry) end)
+    buttonGroup:AddChild(raidButton)
+
+    local searchLabel = AceGUI:Create("Label")
+    searchLabel:SetText(L[" Find:"])
+    searchLabel:SetWidth(50)
+    buttonGroup:AddChild(searchLabel)
+
+    local filterText = AceGUI:Create("EditBox")
+    filterText:SetWidth(k_ChatbuttonWidth * 2)
+    filterText:SetCallback("OnEnterPressed", function(container, evt, text) FFFVoicePack:SetFilterText(text) end)
+    buttonGroup:AddChild(filterText)
+
+    m_Frame:AddChild(buttonGroup)
+
+    tabGroup = AceGUI:Create("TabGroup")
+    tabGroup:SetTitle(L["Voice Lines"])
+    tabGroup:SetFullWidth(true)
+    tabGroup:SetFullHeight(true)
+    tabGroup:SetLayout("Fill")
+
+    local tabs = {}
+    local tabNumber = 1
+    local sortedTabLabels = {}
+    for k in pairs(FFFVoicePack.DataGroups) do table.insert(sortedTabLabels, k) end
+    table.sort(sortedTabLabels)
+    for _, groupId in ipairs(sortedTabLabels) do
+        table.insert(tabs, {text=groupId, value=groupId})
+        tabNumber = tabNumber + 1
+    end
+
+    tabGroup:SetCallback("OnGroupSelected", function(container, event, group) FFFVoicePack:SelectTabGroup(container, group) end)
+    tabGroup:SelectTab("A")
+    tabGroup:SetTabs(tabs)
+
+    m_Frame:AddChild(tabGroup)
+
+    PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN);
+
+    m_FrameActive = true
+end
+
+function FFFVoicePack:SetFilterText(text)
+    m_FilterText = text
+    if string.len(m_FilterText) >= k_MinFilterLength then
+        FFFVoicePack:DrawVoiceLines(FFFVoicePack.Data, m_FilterText, true)
     else
-        frame:Show();
+        -- Re-select the tab group to draw it's entries
+        FFFVoicePack:SelectTabGroup(m_ActiveContainer, m_ActiveGroup)
     end
 end
 
-function Addon:UpdateButtons()
-    if (VoicePackDisabled) then
-        VoicePackSendGuildButton:Disable();
-        VoicePackSendPartyButton:Disable();
-        VoicePackYellButton:Disable();
-        VoicePackSayButton:Disable();
-        VoicePackRaidButton:Disable();
-
-        return;
+function FFFVoicePack:SelectTabGroup(container, groupId)
+    if container == nil or groupId == nil then
+        return
     end
 
-    VoicePackSendGuildButton:Enable();
-    VoicePackSendPartyButton:Enable();
-    VoicePackYellButton:Enable();
-    VoicePackSayButton:Enable();
-    VoicePackRaidButton:Enable();
-
-    if (not IsInGuild()) then
-        VoicePackSendGuildButton:Disable();
-    end
-
-    if (not IsInRaid()) then
-        VoicePackRaidButton:Disable();
-    end
-
-    if (GetNumGroupMembers() == 0) then
-        VoicePackSendPartyButton:Disable();
-    end
+    m_ActiveContainer = container
+    m_ActiveGroup = groupId
+    FFFVoicePack:DrawVoiceLines(FFFVoicePack.DataGroups[groupId], "", false)
 end
 
-function Addon:OnEntryClick(entryId, button)
-    self.ActiveVoiceId = -1;
-
-    idString = getglobal("VoicePackListButton" .. entryId .. "VoiceId"):GetText();
-
-    if DEBUG_MODE then
-        self:Log("EC: " .. entryId .. " -- " .. idString);
+function FFFVoicePack:DrawVoiceLines(data, filter, considerResultLimit)
+    if m_ActiveContainer == nil or data == nil then
+        return
     end
 
-    id = self:IDStringToId(idString);
-    if (id == -1) then
-        return;
-    end
+    m_ActiveContainer:ReleaseChildren()
 
-    if button == "RightButton" then
-        self:PlaySound(idString, nil, nil);
-        return;
-    end
+    local scrollcontainer = AceGUI:Create("SimpleGroup")
+    scrollcontainer:SetFullWidth(true)
+    scrollcontainer:SetFullHeight(true)
+    scrollcontainer:SetLayout("Fill")
 
-    if (DEBUG_MODE == true) then
-        self:PlaySound(idString, nil, nil);
-    end
+    m_ActiveContainer:AddChild(scrollcontainer)
 
-    VoicePackList.selectedWho = getglobal("VoicePackListButton" .. entryId).whoIndex;
-    self.ActiveVoiceId = id;
-    self:Update();
-end
+    local scroll = AceGUI:Create("ScrollFrame")
+    scroll:SetLayout("List")
+    scrollcontainer:AddChild(scroll)
 
-function Addon:Update()
-    local button;
+    local filterIsSet = string.len(filter) >= k_MinFilterLength
+    local results = 0
+    for id, text in pairs(data) do
+        if filterIsSet == false or string.find(string.lower(text), string.lower(filter)) ~= nil then
 
-    local offset = FauxScrollFrame_GetOffset(VoicePackListScrollFrame);
+            local entryGroup = AceGUI:Create("SimpleGroup")
+            entryGroup:SetFullWidth(true)
+            entryGroup:SetLayout("Flow")
 
-    local voiceId, shortDesc;
+            local idLabel = AceGUI:Create("InteractiveLabel")
+            idLabel:SetText("  "..FFFVoicePack:GetVoiceString(id))
+            idLabel:SetWidth(80)
+            idLabel:SetColor(210, 175, 0)
+            idLabel:SetCallback("OnClick", function(button) FFFVoicePack:SelectEntry(id) end)
+            entryGroup:AddChild(idLabel)
 
-    local FilteredVoiceText = {};
-    local FilteredVoices = {};
-    local FilteredVoiceIndex = 0;
-    for i = 1, VoiceCount, 1 do
-        local text = VoiceData[i];
-        local isFiltered = false;
-        if ActiveTextFilter ~= nil then
-            if (string.find(strlower(text), ActiveTextFilter) == nil) then
-                isFiltered = true;
-            end
-        end
+            local textLabel = AceGUI:Create("InteractiveLabel")
+            textLabel:SetText(text)
+            textLabel:SetWidth(400)
+            textLabel:SetFullWidth(false)
+            textLabel:SetCallback("OnClick", function(button, evt, args)
+                if args == "RightButton" then
+                    FFFVoicePack:PlaySound(id)
+                end
 
-        if not isFiltered then
-            FilteredVoices[FilteredVoiceIndex] = i;
-            FilteredVoiceText[FilteredVoiceIndex] = text;
-            FilteredVoiceIndex = FilteredVoiceIndex + 1;
-        end
-    end
+                FFFVoicePack:SelectEntry(id)
+            end)
+            entryGroup:AddChild(textLabel)
 
-    local FilteredVoiceCount = FilteredVoiceIndex;
-    for i = 1, VoicesToDisplay, 1 do
-        local voiceIndex = offset + i - 1;
-
-        button = getglobal("VoicePackListButton" .. i);
-        button:Hide();
-
-        if voiceIndex < FilteredVoiceCount then
-            voiceId = self:GetIdFromIndex(FilteredVoices[voiceIndex]);
-            shortDesc = FilteredVoiceText[voiceIndex];
-
-            getglobal("VoicePackListButton" .. i .. "VoiceId"):SetText(voiceId);
-            getglobal("VoicePackListButton" .. i .. "ShortDesc"):SetText(shortDesc);
-
-            -- Highlight the correct who
-            if (self.ActiveVoiceId == FilteredVoices[voiceIndex]) then
-                button:LockHighlight();
-            else
-                button:UnlockHighlight();
+            scroll:AddChild(entryGroup)
+            results = results + 1
+            if results >= m_ResultLimit and considerResultLimit == true then
+                break
             end
 
-            button:Show();
         end
     end
-
-    self:UpdateButtons();
-
-    -- ScrollFrame update
-    FauxScrollFrame_Update(VoicePackListScrollFrame, FilteredVoiceCount, VoicesToDisplay, VOICE_PACK_LIST_ENTRY_HEIGHT );
-
-    ShowUIPanel(VoicePack_Main);
 end
 
-function Addon:SetFilterText(text)
-    if text ~= nil and strtrim(text) == "" then text = nil end
+function FFFVoicePack:SelectEntry(id)
+    m_SelectedEntry = id
+    local entryText = FFFVoicePack.Data[id]
+    m_Frame:SetStatusText(FFFVoicePack:GetVoiceString(id)..": "..entryText)
+end
 
-    if text ~= nil then
-        text = strlower(text);
+function FFFVoicePack:CloseFrame()
+    if m_FrameActive == false or m_Frame == nil then
+        return
     end
 
-    ActiveTextFilter = text;
-    self:Update();
+    m_FrameActive = false
+    AceGUI:Release(m_Frame)
+    m_Frame = nil
+    PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE);
 end
 
-function VPSendVoice(channel)
-    Addon:SendVoice(channel)
-end
-
-function VPEntryOnClick(self, button)
-    Addon:OnEntryClick(self:GetID(), button);
-end
-
-function VPOnLoad()
-    Addon:Load();
-end
-
-function VPOnUpdate()
-    Addon:Update();
-end
-
-function VPOnDisableEvent()
-    return VoicePackDisabled;
-end
-
-function VPToggleDisable(checkbox)
-    Addon:SetEnabled(checkbox:GetChecked());
-end
-
-function VPToggleCombatDisable(checkbox)
-    Addon:SetCombatEnable(checkbox:GetChecked())
-end
-
-function VPSetFilter(text)
-    Addon:SetFilterText(text);
-end
-
-function ListColumn_SetWidth(width, frame)
-    if (not frame) then
-        frame = self;
+function FFFVoicePack:ToggleWindow(show)
+    if show == true then
+        FFFVoicePack:ShowFrame()
     end
 
-    frame:SetWidth(width);
-    getglobal(frame:GetName() .. "Middle"):SetWidth(width - 9);
+    if m_FrameActive == true then
+        FFFVoicePack:CloseFrame()
+    else
+        FFFVoicePack:ShowFrame()
+    end
 end
