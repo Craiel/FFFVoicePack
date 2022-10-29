@@ -341,7 +341,6 @@ function FFFVoicePack:LoadData()
     data[342]="Komm hier her!"
     data[343]="Komma her!"
     data[344]="Mjam mjam mjam"
-    data[345]="Nein nicht Sie. Der T\195\188rke!"
     data[346]="Paar aufs Maul?"
     data[347]="Uhwhjamuwhaghnrmf"
     data[348]="Vergisset Gandalf."
