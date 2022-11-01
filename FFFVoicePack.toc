@@ -3,7 +3,7 @@
 ## Notes: The Fabulous Furry Freakbrothers VoicePack
 ## Author: Raika
 ## DefaultState: enabled
-## SavedVariables: VoicePackDisabled, VoiceDisableInCombat
+## SavedVariables: FFFVoicePackDB
 ## Version: 2.0
 
 embeds.xml

@@ -100,6 +100,7 @@ function FFFVoicePack:OnInitialize()
 
     FFFVoicePack:Print(FFFVoicePack.DataCount.. L[" Lines Loaded"])
 
+    FFFVoicePack.db = LibStub("AceDB-3.0"):New("FFFVoicePackDB", { profile = { minimap = { hide = false, }, }, })
     FFFVoicePack.Icon = FFFVoicePack:SetupDBIcon()
     FFFVoicePack:RegisterEvents()
 
@@ -118,7 +119,7 @@ end
 -- Setup Methods
 function FFFVoicePack:SetupDBIcon()
     local icon = LibStub("LibDBIcon-1.0")
-    icon:Register("FFFLDB", FFFLDB, savedVarTable)
+    icon:Register("FFFLDB", FFFLDB, FFFVoicePack.db.profile.minimap)
     icon:Show("FFFLDB")
     return icon
 end
