@@ -1,7 +1,7 @@
 local AceGUI = LibStub("AceGUI-3.0");
 local L = LibStub("AceLocale-3.0"):GetLocale("FFFVoicePack", false)
 
-local k_VersionString = "2.0"
+local k_VersionString = "2.1"
 local m_FrameActive = false
 local m_Frame = nil
 local m_SelectedEntry = nil
