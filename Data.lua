@@ -550,6 +550,7 @@ function FFFVoicePack:LoadData()
     data[554]="Scheisse Scheisse Scheisse"
     data[555]="Wir brauchen mehr Scheisse"
     data[556]="hart wie Kruppstahl"
+    data[557]="Listen... do you smell something?"
 
     return data
 end
