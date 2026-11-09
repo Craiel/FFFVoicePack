@@ -1,17 +1,14 @@
-## Interface: 100002
+## Interface: 16001
 ## Title: FFF VoicePack
 ## Notes: The Fabulous Furry Freakbrothers VoicePack
 ## Author: Raika
-## DefaultState: enabled
+## Version: 3.0.0
 ## SavedVariables: FFFVoicePackDB
-## Version: 2.1
+## IconTexture: Interface\AddOns\FFFVoicePack\Images\icon
+## AddonCompartmentFunc: FFFVoicePack_OnAddonCompartmentClick
 
-embeds.xml
-
-# Locale files
-Locales\Locale-enUS.lua
-Locales\Locale-deDE.lua
-
-Core.lua
+Locale.lua
 Data.lua
-UI.lua
+Voice.lua
+Window.lua
+Slash.lua
