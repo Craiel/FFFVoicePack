@@ -5,7 +5,7 @@ local L, Voice = ns.L, ns.Voice
 local WIDTH, HEIGHT = 560, 580
 local ROW_HEIGHT = 20
 local CODE_WIDTH = 56
-local BUTTON_WIDTH = 82
+local BUTTON_WIDTH = 74
 local SEND_CHANNELS = { "PARTY", "RAID", "GUILD" }
 
 local Window = {}
@@ -105,8 +105,9 @@ end
 local function Build()
     BuildEntries()
 
-    frame = CreateFrame("Frame", "FFFVoicePackFrame", UIParent, "ButtonFrameTemplate")
-    ButtonFrameTemplate_HidePortrait(frame)
+    -- The flat portrait frame Forever's own bag windows use, so this one sits in with them.
+    frame = CreateFrame("Frame", "FFFVoicePackFrame", UIParent, "PortraitFrameFlatTemplate")
+    frame:SetPortraitToAsset(C_AddOns.GetAddOnMetadata(addonName, "IconTexture"))
     frame:SetSize(WIDTH, HEIGHT)
     frame:SetPoint("CENTER")
     frame:SetTitle(C_AddOns.GetAddOnMetadata(addonName, "Title"))
@@ -125,8 +126,8 @@ local function Build()
     table.insert(UISpecialFrames, frame:GetName())
 
     frame.Search = CreateFrame("EditBox", nil, frame, "SearchBoxTemplate")
-    frame.Search:SetSize(170, 20)
-    frame.Search:SetPoint("TOPLEFT", 16, -32)
+    frame.Search:SetSize(150, 20)
+    frame.Search:SetPoint("TOPLEFT", 66, -32)
 
     sendButtons = {}
     local anchor
@@ -146,10 +147,10 @@ local function Build()
     playButton = AddButton(L["Play"], L["Play the line for yourself."], function() Voice.Play(selected) end)
     playButton:SetPoint("RIGHT", anchor, "LEFT", -12, 0)
 
-    frame.ScrollBox = CreateFrame("Frame", nil, frame.Inset, "WowScrollBoxList")
-    frame.ScrollBox:SetPoint("TOPLEFT", 4, -4)
-    frame.ScrollBox:SetPoint("BOTTOMRIGHT", -20, 4)
-    frame.ScrollBar = CreateFrame("EventFrame", nil, frame.Inset, "MinimalScrollBar")
+    frame.ScrollBox = CreateFrame("Frame", nil, frame, "WowScrollBoxList")
+    frame.ScrollBox:SetPoint("TOPLEFT", 10, -64)
+    frame.ScrollBox:SetPoint("BOTTOMRIGHT", -26, 32)
+    frame.ScrollBar = CreateFrame("EventFrame", nil, frame, "MinimalScrollBar")
     frame.ScrollBar:SetPoint("TOPLEFT", frame.ScrollBox, "TOPRIGHT", 6, -2)
     frame.ScrollBar:SetPoint("BOTTOMLEFT", frame.ScrollBox, "BOTTOMRIGHT", 6, 2)
     local view = CreateScrollBoxListLinearView()
@@ -159,7 +160,7 @@ local function Build()
 
     local enabled = CreateFrame("CheckButton", nil, frame, "UICheckButtonTemplate")
     enabled:SetSize(22, 22)
-    enabled:SetPoint("BOTTOMLEFT", 8, 2)
+    enabled:SetPoint("BOTTOMLEFT", 8, 6)
     enabled.Text:SetText(L["Enabled"])
     enabled.Text:SetFontObject("GameFontHighlightSmall")
     enabled:SetChecked(Voice.IsEnabled())

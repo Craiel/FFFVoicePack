@@ -2,7 +2,7 @@
 ## Title: FFF VoicePack
 ## Notes: The Fabulous Furry Freakbrothers VoicePack
 ## Author: Raika
-## Version: 3.0.0
+## Version: 3.0.1
 ## SavedVariables: FFFVoicePackDB
 ## IconTexture: Interface\AddOns\FFFVoicePack\Images\icon
 ## AddonCompartmentFunc: FFFVoicePack_OnAddonCompartmentClick
