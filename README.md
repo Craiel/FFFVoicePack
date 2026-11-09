@@ -2,20 +2,42 @@
 
 550 voice clips to play for yourself or send to party, raid or guild chat. Everyone in that chat who has the addon hears the clip.
 
+![](screenshots/window.png)
+
 ![](screenshots/chat.png)
 
 Built for WoW Forever (interface 16001). No libraries needed.
 
-### Usage
+## Install
 
-Copy into the `Interface\AddOns` folder.
+Copy the `FFFVoicePack` folder into `World of Warcraft\_forever_\Interface\AddOns` and restart the game.
 
-- Open the window from the addon menu on the minimap, or with `/vp`.
-- Search the lines, click one to select it, right-click to play it.
-- **Play** plays it for you; **Party**, **Raid** and **Guild** send it to that chat.
-- For macros: `/vp play 42`, `/vp party 42`, `/vp raid 42`, `/vp guild 42`.
+## Usage
 
-A clip is sent as `#fff042: <text>`. The addon plays any such line it sees in say, yell, party, raid or guild chat, at most one every 2 seconds.
+Open the window from the addon menu on the minimap, or with `/vp`.
+
+- **Search** filters the lines by their text.
+- **Click** a line to select it. **Right-click** plays it for you.
+- **Play** plays the selected line for you.
+- **Party**, **Raid** and **Guild** send it to that chat. A button is grey when you are not in a group, raid or guild.
+- **Enabled** turns the addon off and on. When it is off, nothing plays or is sent, including lines from other players.
+
+For macros:
+
+```
+/vp play 42
+/vp party 42
+/vp raid 42
+/vp guild 42
+```
+
+## How it works
+
+A clip goes out as a chat line, `#fff042: <text>`. The addon plays any such line it sees in say, yell, party, raid or guild chat.
+
+- At most one clip plays every 2 seconds, and you can send at most one every 2 seconds.
+- Nothing is sent while the game blocks addon chat.
+- Lines in encounters whose text the game hides from addons are ignored.
 
 ## Contributing
 
